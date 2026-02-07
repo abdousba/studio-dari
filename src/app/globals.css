@@ -24,11 +24,6 @@
     --border: 27 30% 85%;
     --input: 27 30% 85%;
     --ring: 0 79% 72%;
-    --chart-1: 0 79% 72%;
-    --chart-2: 240 67% 94%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
     --radius: 1rem;
   }
 }
@@ -42,5 +37,15 @@
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline;
+  }
+}
+
+@layer utilities {
+  .font-body {
+    font-family: 'Cairo', sans-serif;
+  }
+  .font-headline {
+    font-family: 'Cairo', sans-serif;
+    font-weight: 700;
   }
 }

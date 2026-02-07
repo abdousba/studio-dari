@@ -1,0 +1,51 @@
+
+{
+  "entities": {
+    "Property": {
+      "title": "Property",
+      "description": "عقار معروض للكراء",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "عنوان العقار" },
+        "description": { "type": "string", "description": "وصف العقار" },
+        "price": { "type": "number", "description": "السعر الشهري بالدينار" },
+        "location": { "type": "string", "description": "الموقع (الولاية، البلدية)" },
+        "type": { "type": "string", "enum": ["Apartment", "Villa", "Studio", "House"], "description": "نوع العقار" },
+        "ownerType": { "type": "string", "enum": ["Agent", "Owner"], "description": "نوع المعلن (وسيط أو صاحب سكن)" },
+        "hasOwnershipContract": { "type": "boolean", "description": "هل يتوفر عقد ملكية" },
+        "rentalPeriod": { "type": "string", "enum": ["1", "3", "6", "12"], "description": "مدة الكراء القابلة للتجديد (بالأشهر)" },
+        "advancePayment": { "type": "string", "enum": ["1", "3", "6", "12"], "description": "عدد أشهر التسبيق المطلوبة" },
+        "beds": { "type": "number" },
+        "baths": { "type": "number" },
+        "sqft": { "type": "number" },
+        "imageUrl": { "type": "string" },
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "price", "location", "ownerType", "rentalPeriod", "advancePayment"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "ملف المستخدم",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "userType": { "type": "string", "enum": ["Agent", "Owner", "Renter"] }
+      }
+    }
+  },
+  "auth": {
+    "providers": ["google.com", "password"]
+  },
+  "firestore": {
+    "/properties/{propertyId}": {
+      "schema": "Property",
+      "description": "مجموعة العقارات المعروضة"
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "بيانات المستخدمين"
+    }
+  }
+}

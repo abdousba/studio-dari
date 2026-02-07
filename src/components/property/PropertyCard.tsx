@@ -32,7 +32,7 @@ export function PropertyCard({
   isFavorite = false,
 }: PropertyCardProps) {
   return (
-    <Card className="group overflow-hidden border-none shadow-sm hover:shadow-xl transition-all duration-300 rounded-3xl bg-white">
+    <Card className="group overflow-hidden border-none shadow-sm hover:shadow-xl transition-all duration-300 rounded-3xl bg-white text-right" dir="rtl">
       <div className="relative aspect-[4/3] overflow-hidden">
         <Image
           src={image}
@@ -41,16 +41,16 @@ export function PropertyCard({
           className="object-cover transition-transform duration-500 group-hover:scale-110"
           data-ai-hint="property house"
         />
-        <div className="absolute top-4 left-4">
-          <Badge className="bg-white/90 text-foreground hover:bg-white backdrop-blur-sm rounded-full px-3 py-1 border-none font-semibold">
-            {price.toLocaleString()} DA <span className="text-muted-foreground font-normal ml-1">/ mo</span>
+        <div className="absolute top-4 right-4">
+          <Badge className="bg-white/90 text-foreground hover:bg-white backdrop-blur-sm rounded-full px-3 py-1 border-none font-bold">
+            {price.toLocaleString()} دج <span className="text-muted-foreground font-normal mr-1">/ شهر</span>
           </Badge>
         </div>
         <Button
           variant="ghost"
           size="icon"
           className={cn(
-            "absolute top-4 right-4 rounded-full bg-white/90 hover:bg-white backdrop-blur-sm text-muted-foreground transition-colors",
+            "absolute top-4 left-4 rounded-full bg-white/90 hover:bg-white backdrop-blur-sm text-muted-foreground transition-colors",
             isFavorite && "text-primary"
           )}
         >
@@ -63,24 +63,24 @@ export function PropertyCard({
           <MapPin className="w-3.5 h-3.5" />
           <span className="line-clamp-1">{location}</span>
         </div>
-        <div className="flex items-center justify-between text-muted-foreground border-t pt-4">
-          <div className="flex items-center gap-1">
+        <div className="flex items-center justify-between text-muted-foreground border-t pt-4 flex-row-reverse">
+          <div className="flex items-center gap-1 flex-row-reverse">
             <Bed className="w-4 h-4 text-primary" />
-            <span className="text-xs">{beds} Beds</span>
+            <span className="text-xs">{beds} غرف</span>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-row-reverse">
             <Bath className="w-4 h-4 text-primary" />
-            <span className="text-xs">{baths} Baths</span>
+            <span className="text-xs">{baths} حمام</span>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-row-reverse">
             <Maximize className="w-4 h-4 text-primary" />
-            <span className="text-xs">{sqft} m²</span>
+            <span className="text-xs">{sqft} م²</span>
           </div>
         </div>
       </CardContent>
       <CardFooter className="p-5 pt-0">
-        <Button variant="secondary" className="w-full rounded-2xl bg-secondary hover:bg-secondary/80 font-semibold">
-          View Details
+        <Button variant="secondary" className="w-full rounded-2xl bg-secondary hover:bg-secondary/80 font-bold">
+          عرض التفاصيل
         </Button>
       </CardFooter>
     </Card>

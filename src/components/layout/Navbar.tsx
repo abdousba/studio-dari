@@ -14,19 +14,19 @@ export function Navbar() {
             <Home className="w-6 h-6" />
           </div>
           <span className="text-2xl font-headline font-bold text-foreground tracking-tight">
-            Dzayer <span className="text-primary">Cribs</span>
+            داري <span className="text-primary font-normal">DARI</span>
           </span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium">
+        <div className="hidden md:flex items-center gap-8 text-sm font-bold">
           <Link href="/properties" className="hover:text-primary transition-colors flex items-center gap-1">
-            <Search className="w-4 h-4" /> Discover
+            <Search className="w-4 h-4" /> استكشف
           </Link>
           <Link href="/favorites" className="hover:text-primary transition-colors flex items-center gap-1">
-            <Heart className="w-4 h-4" /> Favorites
+            <Heart className="w-4 h-4" /> المفضلة
           </Link>
           <Link href="/add-listing" className="hover:text-primary transition-colors flex items-center gap-1">
-            <PlusCircle className="w-4 h-4" /> List Property
+            <PlusCircle className="w-4 h-4" /> أضف عقاراً
           </Link>
         </div>
 
@@ -35,7 +35,7 @@ export function Navbar() {
             <User className="w-5 h-5" />
           </Button>
           <Button className="hidden sm:inline-flex rounded-full px-6 shadow-lg shadow-primary/20">
-            Sign In
+            تسجيل الدخول
           </Button>
         </div>
       </div>
