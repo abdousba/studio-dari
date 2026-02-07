@@ -1,47 +1,71 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { PropertyCard } from "@/components/property/PropertyCard";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, Filter, Grid, Map as MapIcon, Search, Home as HomeIcon } from "lucide-react";
+import { MapPin, Filter, Grid, Map as MapIcon, Search, Home as HomeIcon, Loader2 } from "lucide-react";
 import { ALGERIAN_WILAYAS, PROPERTY_TYPES, FLOORS } from "@/lib/constants";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { useFirestore, useCollection } from "@/firebase";
+import { collection, query, orderBy } from "firebase/firestore";
 
 export default function PropertiesPage() {
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
-  const [advanceFilter, setAdvanceFilter] = useState<string>("all");
   const [selectedWilaya, setSelectedWilaya] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
-  const [rooms, setRooms] = useState("all");
   const [selectedFloor, setSelectedFloor] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const db = useFirestore();
+
+  const propertiesQuery = useMemo(() => {
+    if (!db) return null;
+    // لجعل التجربة حقيقية، نأتي بكل العقارات مرتبة حسب الأحدث
+    // الفلترة تتم برمجياً في الواجهة لتقليل استهلاك الكوتا في هذه المرحلة
+    return query(collection(db, "properties"), orderBy("createdAt", "desc"));
+  }, [db]);
+
+  const { data: properties, loading } = useCollection(propertiesQuery);
+
+  const filteredProperties = useMemo(() => {
+    if (!properties) return [];
+    return properties.filter(p => {
+      const matchWilaya = selectedWilaya === "all" || p.location === selectedWilaya;
+      const matchType = selectedType === "all" || p.type === selectedType;
+      const matchMinPrice = !minPrice || p.price >= Number(minPrice);
+      const matchMaxPrice = !maxPrice || p.price <= Number(maxPrice);
+      const matchFloor = selectedFloor === "all" || p.floor === selectedFloor;
+      const matchSearch = !searchQuery || p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.location.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      return matchWilaya && matchType && matchMinPrice && matchMaxPrice && matchFloor && matchSearch;
+    });
+  }, [properties, selectedWilaya, selectedType, minPrice, maxPrice, selectedFloor, searchQuery]);
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-right" dir="rtl">
       <Navbar />
       
-      {/* Header & Filter Bar */}
       <div className="sticky top-16 z-40 bg-white/95 backdrop-blur-md border-b shadow-sm">
         <div className="container mx-auto px-4 py-4 space-y-4">
           
           <div className="flex flex-col md:flex-row items-center gap-4">
-            {/* Search Input */}
             <div className="relative w-full md:max-w-md group">
-              <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 transition-colors group-focus-within:text-primary" />
+              <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
               <Input 
                 placeholder="ابحث بالكلمات المفتاحية (حي، شارع...)" 
                 className="pr-12 rounded-2xl h-12 border-muted bg-secondary/20 focus:bg-white transition-all text-right"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
 
-            {/* View Mode Toggle */}
             <div className="hidden sm:flex bg-muted/50 p-1.5 rounded-2xl shrink-0">
               <Button 
                 variant={viewMode === "grid" ? "default" : "ghost"} 
@@ -62,15 +86,12 @@ export default function PropertiesPage() {
             </div>
           </div>
 
-          {/* Stacked/Wrapped Filters */}
           <div className="flex items-center gap-2 overflow-hidden">
             <ScrollArea className="w-full whitespace-nowrap">
               <div className="flex items-center gap-2 pb-2">
-                
-                {/* Wilaya Filter Chip */}
                 <div className="shrink-0 min-w-[130px]">
                   <Select value={selectedWilaya} onValueChange={setSelectedWilaya}>
-                    <SelectTrigger className="rounded-full h-10 border-muted bg-white hover:bg-muted/30 transition-colors px-4">
+                    <SelectTrigger className="rounded-full h-10 border-muted bg-white px-4">
                       <div className="flex items-center gap-2 overflow-hidden">
                         <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
                         <SelectValue placeholder="الولاية" />
@@ -85,10 +106,9 @@ export default function PropertiesPage() {
                   </Select>
                 </div>
 
-                {/* Property Type Chip */}
                 <div className="shrink-0 min-w-[130px]">
                   <Select value={selectedType} onValueChange={setSelectedType}>
-                    <SelectTrigger className="rounded-full h-10 border-muted bg-white hover:bg-muted/30 transition-colors px-4">
+                    <SelectTrigger className="rounded-full h-10 border-muted bg-white px-4">
                       <div className="flex items-center gap-2">
                         <HomeIcon className="w-3.5 h-3.5 text-primary shrink-0" />
                         <SelectValue placeholder="النوع" />
@@ -103,7 +123,6 @@ export default function PropertiesPage() {
                   </Select>
                 </div>
 
-                {/* Advanced Filter Button */}
                 <Sheet>
                   <SheetTrigger asChild>
                     <Button variant="outline" size="sm" className="rounded-full h-10 shrink-0 flex items-center gap-2 border-primary text-primary hover:bg-primary/5 px-4 font-bold">
@@ -146,7 +165,13 @@ export default function PropertiesPage() {
 
                       <div className="pt-4">
                         <Button className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20">تطبيق الفلاتر</Button>
-                        <Button variant="ghost" className="w-full mt-2 text-muted-foreground">إعادة تعيين</Button>
+                        <Button variant="ghost" onClick={() => {
+                          setMinPrice("");
+                          setMaxPrice("");
+                          setSelectedFloor("all");
+                          setSelectedWilaya("all");
+                          setSelectedType("all");
+                        }} className="w-full mt-2 text-muted-foreground">إعادة تعيين</Button>
                       </div>
                     </div>
                   </SheetContent>
@@ -159,31 +184,43 @@ export default function PropertiesPage() {
       </div>
 
       <main className="flex-1 container mx-auto px-4 py-8">
-        {viewMode === "grid" ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-40">
+            <Loader2 className="w-12 h-12 animate-spin text-primary" />
+            <p className="mt-4 text-muted-foreground">جاري جلب العقارات الحقيقية من داري...</p>
+          </div>
+        ) : viewMode === "grid" ? (
           <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-2 border-b pb-4">
               <div>
                 <h1 className="text-3xl font-headline font-bold">اكتشف <span className="text-primary">منزلك</span> القادم</h1>
                 <p className="text-muted-foreground">نعرض لك أفضل العقارات المتاحة حالياً</p>
               </div>
+              <p className="text-sm font-bold text-primary">{filteredProperties.length} عقار متوفر</p>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {[...PlaceHolderImages, ...PlaceHolderImages].map((img, i) => (
-                <PropertyCard
-                  key={`${img.id}-${i}`}
-                  id={`${img.id}-${i}`}
-                  title={img.description.split('in')[0]}
-                  location={img.description.split('in')[1] || "الجزائر"}
-                  price={45000 + (i * 15000)}
-                  beds={(i % 4) + 1}
-                  baths={(i % 3) + 1}
-                  sqft={70 + (i * 25)}
-                  image={img.imageUrl}
-                  status={i % 3 === 0 ? "reserved" : i % 5 === 0 ? "soon" : "available"}
-                  availabilityNote={i % 5 === 0 ? "متاح بعد شهر" : undefined}
-                />
-              ))}
+              {filteredProperties.length > 0 ? (
+                filteredProperties.map((prop) => (
+                  <PropertyCard
+                    key={prop.id}
+                    id={prop.id}
+                    title={prop.title}
+                    location={prop.location}
+                    price={prop.price}
+                    beds={prop.beds}
+                    baths={prop.baths}
+                    sqft={prop.sqft}
+                    image={prop.imageUrl}
+                    status={prop.status}
+                    availabilityNote={prop.availabilityNote}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full text-center py-20 text-muted-foreground">
+                  لم يتم العثور على نتائج تطابق اختياراتك.
+                </div>
+              )}
             </div>
           </div>
         ) : (

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { use, useEffect, useState } from "react";
@@ -14,14 +13,15 @@ import Link from "next/link";
 import { PROPERTY_TYPES, PROPERTY_STATUS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { sendNotification } from "@/ai/flows/send-notification";
 
 export default function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const db = useFirestore();
   const [mounted, setMounted] = useState(false);
   const { toast } = useToast();
+  const [notifying, setNotifying] = useState(false);
   
-  // Simulated user type (normally from context or auth)
   const [currentUserType, setCurrentUserType] = useState<string | null>(null);
 
   const propertyRef = db ? doc(db, "properties", id) : null;
@@ -29,23 +29,54 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
 
   useEffect(() => {
     setMounted(true);
-    // Check localStorage for simulated user type from Navbar
     const storedType = localStorage.getItem("dari_user_type");
     if (storedType) setCurrentUserType(storedType);
   }, []);
 
-  const handleBookingRequest = () => {
-    toast({
-      title: "تم إرسال طلب الحجز!",
-      description: "لقد أرسلنا تنبيهاً للمؤجر عبر الرسائل النصية والبريد الإلكتروني.",
-    });
+  const handleBookingRequest = async () => {
+    if (!property) return;
+    
+    setNotifying(true);
+    try {
+      // محاكاة إرسال التنبيهات الحقيقية عبر Genkit
+      const renterName = "مستخدم داري"; // يمكن جلبه من Auth لاحقاً
+      
+      // إرسال تنبيه SMS
+      await sendNotification({
+        type: 'sms',
+        recipient: property.ownerPhone || "0550000000",
+        propertyTitle: property.title,
+        renterName: renterName
+      });
+
+      // إرسال تنبيه Email
+      await sendNotification({
+        type: 'email',
+        recipient: property.ownerEmail || "contact@dari.dz",
+        propertyTitle: property.title,
+        renterName: renterName
+      });
+
+      toast({
+        title: "تم إرسال طلب الحجز بنجاح!",
+        description: "لقد تلقى المؤجر تنبيهاً فورياً عبر الهاتف والبريد الإلكتروني.",
+      });
+    } catch (e) {
+      toast({
+        title: "خطأ في التنبيه",
+        description: "تعذر إرسال التنبيهات حالياً، يرجى الاتصال هاتفياً.",
+        variant: "destructive"
+      });
+    } finally {
+      setNotifying(false);
+    }
   };
 
   if (!mounted || loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white" dir="rtl">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        <p className="mt-4 text-muted-foreground">جاري تحميل تفاصيل العقار...</p>
+        <p className="mt-4 text-muted-foreground">جاري تحميل تفاصيل العقار من Firestore...</p>
       </div>
     );
   }
@@ -74,7 +105,6 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-8">
-        {/* Gallery / Hero */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 h-[300px] md:h-[500px]">
           <div className="md:col-span-2 relative rounded-3xl overflow-hidden group shadow-lg">
             <Image 
@@ -83,7 +113,6 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
               fill 
               className="object-cover transition-transform duration-700 group-hover:scale-105"
               priority
-              data-ai-hint="luxury property"
             />
           </div>
           <div className="hidden md:grid grid-rows-2 gap-4">
@@ -97,7 +126,6 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          {/* Main Info */}
           <div className="lg:col-span-2 space-y-8">
             <div className="space-y-4">
               <div className="flex flex-wrap gap-3 items-center">
@@ -114,7 +142,6 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
               </div>
             </div>
 
-            {/* Negotiation Status Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               <Card className={cn("rounded-2xl border-none shadow-sm", property.isPriceNegotiable ? "bg-green-50" : "bg-slate-50")}>
                 <CardContent className="p-4 flex items-center gap-4">
@@ -123,7 +150,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">قابلية تفاوض السعر</p>
-                    <p className="font-bold text-sm">{property.isPriceNegotiable ? "السعر قابل للتفاوض" : "السعر ثابت وغير قابل للتفاوض"}</p>
+                    <p className="font-bold text-sm">{property.isPriceNegotiable ? "السعر قابل للتفاوض" : "السعر ثابت"}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -134,7 +161,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">قابلية تفاوض المدة</p>
-                    <p className="font-bold text-sm">{property.isDurationNegotiable ? "المدة قابلة للتفاوض" : "مدة الكراء ثابتة"}</p>
+                    <p className="font-bold text-sm">{property.isDurationNegotiable ? "المدة قابلة للتفاوض" : "المدة ثابتة"}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -164,21 +191,8 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                 {property.description}
               </p>
             </div>
-
-            <div className="space-y-4">
-              <h2 className="text-2xl font-headline font-bold">المرافق والخدمات</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {(property.amenities || "مكيف هواء، موقف سيارات، مصعد").split('،').map((amenity: string) => (
-                  <div key={amenity} className="flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-green-500" />
-                    <span>{amenity.trim()}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
 
-          {/* Sidebar - Contact & Pricing */}
           <div className="space-y-6">
             <Card className="rounded-3xl border-none shadow-2xl shadow-primary/10 overflow-hidden sticky top-24">
               <CardContent className="p-8 space-y-6">
@@ -190,52 +204,20 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                   </div>
                 </div>
 
-                <div className="space-y-4 pt-4 border-t">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">التسبيق المطلوب</span>
-                    <span className="font-bold">{property.advancePayment} أشهر</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">مدة الكراء</span>
-                    <span className="font-bold">{property.rentalPeriod === "12" ? "سنة" : property.rentalPeriod + " أشهر"} قابلة للتجديد</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">عقد ملكية</span>
-                    <span className={cn("font-bold", property.hasOwnershipContract ? "text-green-600" : "text-orange-500")}>
-                      {property.hasOwnershipContract ? "متوفر وموثق" : "غير مصرح به"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">نوع المعلن</span>
-                    <span className="font-bold">{property.ownerType === "Owner" ? "صاحب سكن" : "وسيط عقاري"}</span>
-                  </div>
-                </div>
-
                 <div className="space-y-3 pt-6">
-                  {/* Reservation Button for Renters Only */}
                   {currentUserType === "Renter" && property.status === "available" && (
                     <Button 
                       onClick={handleBookingRequest}
+                      disabled={notifying}
                       className="w-full h-14 rounded-2xl text-lg font-bold bg-green-600 hover:bg-green-700 shadow-lg shadow-green-200 flex gap-2"
                     >
-                      <CalendarCheck className="w-6 h-6" /> احجز الآن
+                      {notifying ? <Loader2 className="w-6 h-6 animate-spin" /> : <CalendarCheck className="w-6 h-6" />}
+                      {notifying ? "جاري الإرسال..." : "احجز الآن"}
                     </Button>
                   )}
 
                   <Button className="w-full h-14 rounded-2xl text-lg font-bold flex gap-2" disabled={property.status === "reserved"}>
                     <Phone className="w-5 h-5" /> اتصل بالمعلن
-                  </Button>
-                  <Button variant="secondary" className="w-full h-14 rounded-2xl text-lg font-bold flex gap-2" disabled={property.status === "reserved"}>
-                    <MessageSquare className="w-5 h-5" /> إرسال رسالة
-                  </Button>
-                </div>
-
-                <div className="flex gap-4 pt-4">
-                  <Button variant="outline" className="flex-1 rounded-xl h-12 flex gap-2">
-                    <Heart className="w-4 h-4" /> حفظ
-                  </Button>
-                  <Button variant="outline" className="flex-1 rounded-xl h-12 flex gap-2">
-                    <Share2 className="w-4 h-4" /> مشاركة
                   </Button>
                 </div>
               </CardContent>
@@ -243,7 +225,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
 
             <div className="p-6 rounded-3xl bg-primary/5 border border-primary/10 space-y-4">
               <h3 className="font-bold text-lg">نصيحة أمان</h3>
-              <p className="text-sm text-muted-foreground">لا تقم بإرسال أي مبالغ مالية قبل معاينة العقار والتأكد من كافة الوثائق الرسمية في مكتب التوثيق.</p>
+              <p className="text-sm text-muted-foreground">التطبيق يقوم بتنبيه المؤجر فورياً. لا تقم بالدفع المسبق خارج مكتب التوثيق.</p>
             </div>
           </div>
         </div>

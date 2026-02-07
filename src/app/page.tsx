@@ -1,23 +1,30 @@
-
 "use client";
 
 import Link from "next/link";
 import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search, MapPin, Sparkles, Home as HomeIcon } from "lucide-react";
+import { Search, MapPin, Sparkles, Home as HomeIcon, Loader2 } from "lucide-react";
 import { FeaturedRecommendations } from "@/components/property/FeaturedRecommendations";
 import { PropertyCard } from "@/components/property/PropertyCard";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ALGERIAN_WILAYAS, PROPERTY_TYPES } from "@/lib/constants";
+import { useFirestore, useCollection } from "@/firebase";
+import { collection, query, orderBy, limit } from "firebase/firestore";
 
 export default function Home() {
   const [location, setLocation] = useState("");
   const [propertyType, setPropertyType] = useState("");
   const router = useRouter();
+  const db = useFirestore();
+
+  const recentQuery = useMemo(() => {
+    if (!db) return null;
+    return query(collection(db, "properties"), orderBy("createdAt", "desc"), limit(4));
+  }, [db]);
+
+  const { data: recentProperties, loading } = useCollection(recentQuery);
 
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -30,7 +37,6 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       
-      {/* Hero Section */}
       <section className="relative pt-20 pb-32 px-4 overflow-hidden">
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-3xl -z-10" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-secondary/30 rounded-full blur-3xl -z-10" />
@@ -41,15 +47,15 @@ export default function Home() {
             نرتقي بالعقارات في الجزائر
           </div>
           
-          <h1 className="text-5xl md:text-7xl font-headline font-bold tracking-tight text-foreground animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-100">
+          <h1 className="text-5xl md:text-7xl font-headline font-bold tracking-tight text-foreground">
             ابحث عن <span className="text-primary italic">دار</span> أحلامك في الجزائر
           </h1>
           
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-body leading-relaxed animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200">
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-body leading-relaxed">
             من الشقق العصرية في العاصمة إلى الفلل الهادئة في وهران، اكتشف قوائم مختارة تشعرك بالانتماء.
           </p>
 
-          <div className="max-w-3xl mx-auto p-2 bg-white rounded-3xl shadow-2xl shadow-primary/10 flex flex-col md:flex-row gap-2 animate-in fade-in zoom-in duration-1000 delay-300">
+          <div className="max-w-3xl mx-auto p-2 bg-white rounded-3xl shadow-2xl shadow-primary/10 flex flex-col md:flex-row gap-2">
             <div className="flex-1 flex items-center px-4 gap-2">
               <MapPin className="text-muted-foreground w-5 h-5" />
               <Select value={location} onValueChange={setLocation}>
@@ -83,7 +89,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Recommendations Section */}
       <section className="py-20 bg-white/50">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
@@ -100,29 +105,42 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Recent Listings */}
       <section className="py-20">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-headline font-bold mb-12 text-right">أحدث الإعلانات على <span className="text-primary">داري</span></h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {PlaceHolderImages.map((img, i) => (
-              <PropertyCard
-                key={img.id}
-                id={img.id}
-                title={img.description}
-                location="الجزائر"
-                price={85000 + (i * 12000)}
-                beds={i + 1}
-                baths={Math.max(1, i)}
-                sqft={80 + (i * 20)}
-                image={img.imageUrl}
-              />
-            ))}
-          </div>
+          
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="w-10 h-10 animate-spin text-primary" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {recentProperties && recentProperties.length > 0 ? (
+                recentProperties.map((prop) => (
+                  <PropertyCard
+                    key={prop.id}
+                    id={prop.id}
+                    title={prop.title}
+                    location={prop.location}
+                    price={prop.price}
+                    beds={prop.beds}
+                    baths={prop.baths}
+                    sqft={prop.sqft}
+                    image={prop.imageUrl}
+                    status={prop.status}
+                    availabilityNote={prop.availabilityNote}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full text-center py-20 text-muted-foreground">
+                  لا توجد عقارات منشورة حالياً.
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="bg-secondary/50 pt-20 pb-10 mt-auto border-t">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16 text-right">
@@ -159,7 +177,7 @@ export default function Home() {
               <h4 className="font-headline font-bold mb-6 text-lg">النشرة الإخبارية</h4>
               <p className="text-muted-foreground mb-4">احصل على أحدث العقارات في بريدك.</p>
               <div className="flex gap-2">
-                <Input placeholder="البريد الإلكتروني" className="rounded-xl border-none shadow-sm text-right" />
+                <input placeholder="البريد الإلكتروني" className="rounded-xl border-none shadow-sm text-right px-4 h-10 w-full" />
                 <Button className="rounded-xl px-4">انضمام</Button>
               </div>
             </div>
