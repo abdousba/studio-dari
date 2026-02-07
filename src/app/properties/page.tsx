@@ -8,12 +8,15 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, Filter, Grid, Map as MapIcon, Search, Plus, Minus } from "lucide-react";
+import { MapPin, Filter, Grid, Map as MapIcon, Search, Plus, Minus, Home as HomeIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ALGERIAN_WILAYAS, PROPERTY_TYPES } from "@/lib/constants";
 
 export default function PropertiesPage() {
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
   const [advanceFilter, setAdvanceFilter] = useState<string>("all");
+  const [selectedWilaya, setSelectedWilaya] = useState<string>("all");
+  const [selectedType, setSelectedType] = useState<string>("all");
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-right" dir="rtl">
@@ -25,13 +28,41 @@ export default function PropertiesPage() {
           <div className="relative flex-1 w-full">
             <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
             <Input 
-              placeholder="ابحث بالمدينة، الحي، أو الكلمات المفتاحية..." 
+              placeholder="ابحث بالكلمات المفتاحية..." 
               className="pr-12 rounded-2xl h-12 border-muted text-right"
             />
           </div>
           
           <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0 no-scrollbar w-full lg:w-auto">
-             <div className="shrink-0 w-40">
+             <div className="shrink-0 w-36">
+                <Select value={selectedWilaya} onValueChange={setSelectedWilaya}>
+                  <SelectTrigger className="rounded-full h-10 border-muted">
+                    <SelectValue placeholder="كل الولايات" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60 overflow-y-auto">
+                    <SelectItem value="all">كل الولايات</SelectItem>
+                    {ALGERIAN_WILAYAS.map(w => (
+                      <SelectItem key={w} value={w}>{w}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+             </div>
+             
+             <div className="shrink-0 w-36">
+                <Select value={selectedType} onValueChange={setSelectedType}>
+                  <SelectTrigger className="rounded-full h-10 border-muted">
+                    <SelectValue placeholder="نوع العقار" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">كل الأنواع</SelectItem>
+                    {PROPERTY_TYPES.map(t => (
+                      <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+             </div>
+
+             <div className="shrink-0 w-32">
                 <Select value={advanceFilter} onValueChange={setAdvanceFilter}>
                   <SelectTrigger className="rounded-full h-10 border-muted">
                     <SelectValue placeholder="أشهر التسبيق" />
@@ -45,8 +76,8 @@ export default function PropertiesPage() {
                   </SelectContent>
                 </Select>
              </div>
-            <Badge variant="secondary" className="rounded-full px-4 py-2 cursor-pointer hover:bg-primary/10 transition-colors shrink-0">السعر: 2مليون - 50مليون</Badge>
-            <Badge variant="secondary" className="rounded-full px-4 py-2 cursor-pointer hover:bg-primary/10 transition-colors shrink-0">نوع العقار: الكل</Badge>
+            
+            <Badge variant="secondary" className="rounded-full px-4 py-2 cursor-pointer hover:bg-primary/10 transition-colors shrink-0">السعر: الكل</Badge>
             <Button variant="outline" size="sm" className="rounded-full shrink-0 flex items-center gap-2">
               <Filter className="w-4 h-4" /> كل الفلترات
             </Button>
@@ -78,7 +109,7 @@ export default function PropertiesPage() {
           <div className="space-y-12">
             <div className="flex items-center justify-between flex-row-reverse">
               <h1 className="text-3xl font-headline font-bold">اكتشف <span className="text-primary">منزلك</span> القادم</h1>
-              <p className="text-muted-foreground">عرض 142 عقاراً في الجزائر</p>
+              <p className="text-muted-foreground">عرض العقارات المتاحة في الجزائر</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -87,7 +118,7 @@ export default function PropertiesPage() {
                   key={`${img.id}-${i}`}
                   id={`${img.id}-${i}`}
                   title={img.description.split('in')[0]}
-                  location={img.description.split('in')[1] || "الجزائر العاصمة"}
+                  location={img.description.split('in')[1] || "الجزائر"}
                   price={45000 + (i * 15000)}
                   beds={(i % 4) + 1}
                   baths={(i % 3) + 1}
@@ -106,7 +137,6 @@ export default function PropertiesPage() {
             <div className="absolute inset-0 bg-secondary/20 flex items-center justify-center bg-[url('https://picsum.photos/seed/map/1920/1080')] bg-cover opacity-50 grayscale contrast-125" />
             <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent pointer-events-none" />
             
-            {/* Interactive map markers simulation */}
             <div className="absolute top-[20%] right-[30%]">
               <div className="bg-primary text-white p-2 rounded-full shadow-lg cursor-pointer hover:scale-110 transition-transform">
                 <MapPin className="w-6 h-6" />

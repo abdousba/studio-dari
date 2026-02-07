@@ -11,11 +11,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { generatePropertyDescription } from "@/ai/flows/generate-property-description";
-import { Loader2, Upload, Sparkles, CheckCircle2, Home as HomeIcon } from "lucide-react";
+import { Loader2, Upload, Sparkles, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import { ALGERIAN_WILAYAS, PROPERTY_TYPES } from "@/lib/constants";
 
 export default function AddListingPage() {
   const [loadingAI, setLoadingAI] = useState(false);
@@ -23,8 +24,8 @@ export default function AddListingPage() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
-    type: "Apartment",
-    location: "الجزائر العاصمة",
+    type: "apartment",
+    location: "الجزائر",
     price: "",
     beds: "1",
     baths: "1",
@@ -52,8 +53,9 @@ export default function AddListingPage() {
 
     setLoadingAI(true);
     try {
+      const typeLabel = PROPERTY_TYPES.find(t => t.value === formData.type)?.label || formData.type;
       const res = await generatePropertyDescription({
-        propertyType: formData.type,
+        propertyType: typeLabel,
         location: formData.location,
         price: Number(formData.price),
         numBedrooms: Number(formData.beds),
@@ -156,8 +158,30 @@ export default function AddListingPage() {
                     <Input id="title" placeholder="مثلاً: شقة فاخرة تطل على البحر" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="location">الموقع (الولاية، الحي)</Label>
-                    <Input id="location" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} />
+                    <Label>الولاية</Label>
+                    <Select value={formData.location} onValueChange={(v) => setFormData({...formData, location: v})}>
+                      <SelectTrigger className="rounded-xl">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60 overflow-y-auto">
+                        {ALGERIAN_WILAYAS.map(w => (
+                          <SelectItem key={w} value={w}>{w}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>نوع العقار</Label>
+                    <Select value={formData.type} onValueChange={(v) => setFormData({...formData, type: v})}>
+                      <SelectTrigger className="rounded-xl">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PROPERTY_TYPES.map(t => (
+                          <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="price">السعر (شهري بالدينار)</Label>
@@ -265,10 +289,6 @@ export default function AddListingPage() {
                     <p className="text-xl font-bold">ضع صورك هنا</p>
                     <p className="text-muted-foreground">أو انقر للتصفح من جهازك</p>
                   </div>
-                  <div className="flex justify-center gap-4 text-xs font-medium text-muted-foreground pt-4">
-                    <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-500" /> ضغط تلقائي</span>
-                    <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-500" /> تحميل سريع مفعّل</span>
-                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -299,7 +319,7 @@ export default function AddListingPage() {
                 </div>
                 <div className="flex gap-3">
                   <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shrink-0">2</div>
-                  <p>كن دقيقاً في الموقع. اذكر القرب من المعالم مثل الجامع الأعظم أو الجامعات الكبرى.</p>
+                  <p>كن دقيقاً في اختيار الولاية ونوع العقار لتسهيل الوصول إليك.</p>
                 </div>
                 <div className="flex gap-3">
                   <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shrink-0">3</div>

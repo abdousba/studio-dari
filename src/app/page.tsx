@@ -11,17 +11,19 @@ import { PropertyCard } from "@/components/property/PropertyCard";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ALGERIAN_WILAYAS, PROPERTY_TYPES } from "@/lib/constants";
 
 export default function Home() {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [location, setLocation] = useState("");
+  const [propertyType, setPropertyType] = useState("");
   const router = useRouter();
 
   const handleSearch = () => {
-    if (searchQuery.trim()) {
-      router.push(`/properties?q=${encodeURIComponent(searchQuery)}`);
-    } else {
-      router.push("/properties");
-    }
+    const params = new URLSearchParams();
+    if (location && location !== "all") params.append("location", location);
+    if (propertyType && propertyType !== "all") params.append("type", propertyType);
+    router.push(`/properties?${params.toString()}`);
   };
 
   return (
@@ -49,21 +51,30 @@ export default function Home() {
 
           <div className="max-w-3xl mx-auto p-2 bg-white rounded-3xl shadow-2xl shadow-primary/10 flex flex-col md:flex-row gap-2 animate-in fade-in zoom-in duration-1000 delay-300">
             <div className="flex-1 flex items-center px-4 gap-2">
-              <Search className="text-muted-foreground w-5 h-5" />
-              <Input 
-                placeholder="ابحث بالمدينة، الحي..." 
-                className="border-none shadow-none focus-visible:ring-0 text-lg placeholder:text-muted-foreground/60 text-right"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              />
+              <MapPin className="text-muted-foreground w-5 h-5" />
+              <Select value={location} onValueChange={setLocation}>
+                <SelectTrigger className="border-none shadow-none focus:ring-0 text-lg text-right h-12">
+                  <SelectValue placeholder="اختر الولاية" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60 overflow-y-auto">
+                  {ALGERIAN_WILAYAS.map((wilaya) => (
+                    <SelectItem key={wilaya} value={wilaya}>{wilaya}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex-1 flex items-center px-4 gap-2 md:border-r">
-              <MapPin className="text-muted-foreground w-5 h-5" />
-              <Input 
-                placeholder="نوع العقار" 
-                className="border-none shadow-none focus-visible:ring-0 text-lg placeholder:text-muted-foreground/60 text-right"
-              />
+              <HomeIcon className="text-muted-foreground w-5 h-5" />
+              <Select value={propertyType} onValueChange={setPropertyType}>
+                <SelectTrigger className="border-none shadow-none focus:ring-0 text-lg text-right h-12">
+                  <SelectValue placeholder="نوع العقار" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROPERTY_TYPES.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <Button size="lg" className="rounded-2xl px-10 h-14 text-lg font-bold shadow-lg shadow-primary/30" onClick={handleSearch}>
               بحث
