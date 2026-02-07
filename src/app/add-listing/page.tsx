@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -13,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { generatePropertyDescription } from "@/ai/flows/generate-property-description";
-import { Loader2, Phone, Mail, Sparkles, ImagePlus, AlertTriangle, Info } from "lucide-react";
+import { Loader2, Phone, Mail, Sparkles, ImagePlus, AlertTriangle, Info, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useUser, useDoc } from "@/firebase";
 import { collection, addDoc, serverTimestamp, doc } from "firebase/firestore";
@@ -169,7 +168,6 @@ export default function AddListingPage() {
           <Card className="rounded-3xl border-none shadow-xl shadow-primary/5 overflow-hidden">
             <CardContent className="p-8 space-y-8">
               
-              {/* Image Upload Section */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <Label className="text-lg font-bold">صور العقار (بحد أقصى 4)</Label>
@@ -190,7 +188,7 @@ export default function AddListingPage() {
                         onClick={() => setUploadedImages(uploadedImages.filter((_, idx) => idx !== i))}
                         className="absolute top-2 right-2 bg-destructive text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                       >
-                        <Loader2 className="w-4 h-4 rotate-45" />
+                        <X className="w-4 h-4" />
                       </button>
                     </div>
                   ))}
@@ -328,7 +326,6 @@ export default function AddListingPage() {
                 <Textarea id="description" placeholder="صف سحر وجمال عقارك..." className="min-h-[150px] rounded-2xl" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
               </div>
 
-              {/* Defects Section with Islamic Reminder */}
               <div className="space-y-4">
                 <Label htmlFor="defects">العيوب (اختياري)</Label>
                 <Alert variant="destructive" className="bg-orange-50 border-orange-200 text-orange-800 rounded-2xl">

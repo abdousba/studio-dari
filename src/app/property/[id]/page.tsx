@@ -1,4 +1,3 @@
-
 "use client";
 
 import { use, useEffect, useState, useMemo } from "react";
@@ -8,7 +7,27 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDoc, useFirestore } from "@/firebase";
 import { doc } from "firebase/firestore";
-import { Bed, Bath, Maximize, MapPin, Phone, Heart, Loader2, AlertCircle, Clock, CalendarCheck, Handshake, Info, AlertTriangle, ChevronRight, ChevronLeft, ShieldCheck, Calculator, Landmark } from "lucide-react";
+import { 
+  Bed, 
+  Bath, 
+  Maximize, 
+  MapPin, 
+  Phone, 
+  Heart, 
+  Loader2, 
+  AlertCircle, 
+  Clock, 
+  CalendarCheck, 
+  Handshake, 
+  Info, 
+  AlertTriangle, 
+  ChevronRight, 
+  ChevronLeft, 
+  ShieldCheck, 
+  Calculator, 
+  Landmark,
+  CheckCircle
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { PROPERTY_TYPES, PROPERTY_STATUS } from "@/lib/constants";
@@ -101,18 +120,16 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
   const statusInfo = PROPERTY_STATUS.find(s => s.value === property.status) || PROPERTY_STATUS[0];
   const images = property.images && property.images.length > 0 ? property.images : [property.imageUrl || "https://picsum.photos/seed/dari/800/600"];
 
-  // حاسبة التكاليف
   const price = Number(property.price);
   const advanceMonths = Number(property.advancePayment) || 6;
   const totalAdvance = price * advanceMonths;
-  const agentFee = property.ownerType === "Agent" ? price : 0; // عمولة شهر واحد إذا كان المعلن وسيط
+  const agentFee = property.ownerType === "Agent" ? price : 0; 
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-right" dir="rtl">
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-8">
-        {/* Gallery Section */}
         <div className="relative h-[350px] md:h-[550px] rounded-[3rem] overflow-hidden shadow-2xl mb-8 group">
           <Image 
             src={images[activeImageIndex]} 
@@ -222,7 +239,6 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
               </p>
             </div>
 
-            {/* حاسبة التكاليف الذكية */}
             <Card className="rounded-3xl border-2 border-primary/10 bg-gradient-to-br from-primary/5 to-transparent overflow-hidden">
               <CardHeader className="flex flex-row items-center gap-2 border-b bg-white/50">
                 <Calculator className="w-5 h-5 text-primary" />
@@ -251,7 +267,6 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
               </CardContent>
             </Card>
 
-            {/* Defects Display */}
             {property.defects && (
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-orange-600">
