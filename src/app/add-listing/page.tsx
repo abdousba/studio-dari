@@ -11,12 +11,16 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { generatePropertyDescription } from "@/ai/flows/generate-property-description";
-import { Loader2, Upload, Sparkles, CheckCircle2 } from "lucide-react";
+import { Loader2, Upload, Sparkles, CheckCircle2, Home as HomeIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useFirestore } from "@/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useRouter } from "next/navigation";
 
 export default function AddListingPage() {
   const [loadingAI, setLoadingAI] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     type: "Apartment",
@@ -24,14 +28,17 @@ export default function AddListingPage() {
     price: "",
     beds: "1",
     baths: "1",
+    sqft: "80",
     amenities: "شرفة، واي فاي",
     description: "",
-    ownerType: "Owner", // Agent or Owner
+    ownerType: "Owner", 
     hasOwnershipContract: false,
-    rentalPeriod: "12", // 1, 3, 6, 12
-    advancePayment: "6", // 1, 3, 6, 12
+    rentalPeriod: "12", 
+    advancePayment: "6",
   });
   const { toast } = useToast();
+  const db = useFirestore();
+  const router = useRouter();
 
   const handleAIEnhance = async () => {
     if (!formData.price || !formData.location) {
@@ -59,6 +66,47 @@ export default function AddListingPage() {
       toast({ title: "خطأ في الذكاء الاصطناعي", description: "تعذر توليد الوصف.", variant: "destructive" });
     } finally {
       setLoadingAI(false);
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!formData.title || !formData.price || !formData.location) {
+      toast({
+        title: "خطأ في النشر",
+        description: "يرجى ملء كافة الحقول الإلزامية.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsPublishing(true);
+    try {
+      if (db) {
+        await addDoc(collection(db, "properties"), {
+          ...formData,
+          price: Number(formData.price),
+          beds: Number(formData.beds),
+          baths: Number(formData.baths),
+          sqft: Number(formData.sqft),
+          createdAt: serverTimestamp(),
+          imageUrl: "https://picsum.photos/seed/" + Math.random() + "/800/600",
+        });
+        
+        toast({
+          title: "تم النشر بنجاح!",
+          description: "عقارك الآن متاح للمستأجرين.",
+        });
+        router.push("/properties");
+      }
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: "فشل النشر",
+        description: "حدث خطأ أثناء حفظ البيانات.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -167,8 +215,8 @@ export default function AddListingPage() {
                     <Input id="baths" type="number" value={formData.baths} onChange={e => setFormData({...formData, baths: e.target.value})} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="amenities">المرافق</Label>
-                    <Input id="amenities" placeholder="مكيف، موقف سيارات..." value={formData.amenities} onChange={e => setFormData({...formData, amenities: e.target.value})} />
+                    <Label htmlFor="sqft">المساحة م²</Label>
+                    <Input id="sqft" type="number" value={formData.sqft} onChange={e => setFormData({...formData, sqft: e.target.value})} />
                   </div>
                 </div>
 
@@ -227,7 +275,15 @@ export default function AddListingPage() {
 
             <div className="flex gap-4">
               <Button variant="outline" size="lg" className="flex-1 rounded-2xl h-14">حفظ كمسودة</Button>
-              <Button size="lg" className="flex-1 rounded-2xl h-14 font-bold shadow-lg shadow-primary/30">نشر الإعلان</Button>
+              <Button 
+                size="lg" 
+                className="flex-1 rounded-2xl h-14 font-bold shadow-lg shadow-primary/30"
+                onClick={handlePublish}
+                disabled={isPublishing}
+              >
+                {isPublishing ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
+                نشر الإعلان
+              </Button>
             </div>
           </div>
 
@@ -249,16 +305,6 @@ export default function AddListingPage() {
                   <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shrink-0">3</div>
                   <p>استخدم محسّن الذكاء الاصطناعي لكتابة وصف احترافي يبيع "نمط الحياة" في المنزل.</p>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-3xl border-none shadow-xl shadow-primary/5">
-              <CardHeader>
-                <CardTitle className="font-headline text-xl">ضمان الأمان</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 text-sm text-muted-foreground">
-                <p>داري DARI يتحقق من كل إعلان لضمان مجتمع آمن لكل من الملاك والمستأجرين.</p>
-                <Button variant="secondary" className="w-full rounded-xl">تعرف على المزيد</Button>
               </CardContent>
             </Card>
           </aside>

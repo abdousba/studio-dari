@@ -1,4 +1,6 @@
 
+"use client";
+
 import Link from "next/link";
 import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
@@ -7,8 +9,21 @@ import { Search, MapPin, Sparkles, Home as HomeIcon } from "lucide-react";
 import { FeaturedRecommendations } from "@/components/property/FeaturedRecommendations";
 import { PropertyCard } from "@/components/property/PropertyCard";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      router.push(`/properties?q=${encodeURIComponent(searchQuery)}`);
+    } else {
+      router.push("/properties");
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -38,6 +53,9 @@ export default function Home() {
               <Input 
                 placeholder="ابحث بالمدينة، الحي..." 
                 className="border-none shadow-none focus-visible:ring-0 text-lg placeholder:text-muted-foreground/60 text-right"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               />
             </div>
             <div className="flex-1 flex items-center px-4 gap-2 md:border-r">
@@ -47,7 +65,7 @@ export default function Home() {
                 className="border-none shadow-none focus-visible:ring-0 text-lg placeholder:text-muted-foreground/60 text-right"
               />
             </div>
-            <Button size="lg" className="rounded-2xl px-10 h-14 text-lg font-bold shadow-lg shadow-primary/30">
+            <Button size="lg" className="rounded-2xl px-10 h-14 text-lg font-bold shadow-lg shadow-primary/30" onClick={handleSearch}>
               بحث
             </Button>
           </div>
@@ -80,8 +98,8 @@ export default function Home() {
               <PropertyCard
                 key={img.id}
                 id={img.id}
-                title={img.description.split('in')[0]}
-                location={img.description.split('in')[1] || "الجزائر"}
+                title={img.description}
+                location="الجزائر"
                 price={85000 + (i * 12000)}
                 beds={i + 1}
                 baths={Math.max(1, i)}
@@ -115,15 +133,13 @@ export default function Home() {
               <ul className="space-y-4 text-muted-foreground">
                 <li><Link href="/properties" className="hover:text-primary transition-colors">ابحث عن منزل</Link></li>
                 <li><Link href="/add-listing" className="hover:text-primary transition-colors">أعلن عن عقارك</Link></li>
-                <li><Link href="/map" className="hover:text-primary transition-colors">استكشف الخريطة</Link></li>
-                <li><Link href="/ai-suggest" className="hover:text-primary transition-colors">توصيات الذكاء الاصطناعي</Link></li>
+                <li><Link href="/favorites" className="hover:text-primary transition-colors">المفضلة</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-headline font-bold mb-6 text-lg">الدعم</h4>
               <ul className="space-y-4 text-muted-foreground">
                 <li><Link href="/faq" className="hover:text-primary transition-colors">مركز المساعدة</Link></li>
-                <li><Link href="/safety" className="hover:text-primary transition-colors">نصائح السلامة</Link></li>
                 <li><Link href="/terms" className="hover:text-primary transition-colors">شروط الخدمة</Link></li>
                 <li><Link href="/privacy" className="hover:text-primary transition-colors">سياسة الخصوصية</Link></li>
               </ul>
