@@ -1,4 +1,3 @@
-
 export const ALGERIAN_WILAYAS = [
   "أدرار", "الشلف", "الأغواط", "أم البواقي", "باتنة", "بجاية", "بسكرة", "بشار", "البليدة", "البويرة",
   "تمنراست", "تبسة", "تلمسان", "تيارت", "تيزي وزو", "الجزائر", "الجلفة", "جيجل", "سطيف", "سعيدة",
@@ -14,4 +13,10 @@ export const PROPERTY_TYPES = [
   { value: "apartment", label: "شقة في عمارة" },
   { value: "store", label: "محل" },
   { value: "warehouse", label: "مستودع" }
+];
+
+export const PROPERTY_STATUS = [
+  { value: "available", label: "متاح", color: "bg-green-500" },
+  { value: "reserved", label: "محجوز", color: "bg-red-500" },
+  { value: "soon", label: "قريباً", color: "bg-orange-500" }
 ];

@@ -1,14 +1,14 @@
-
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Heart, MapPin, Bed, Bath, Maximize } from "lucide-react";
+import { Heart, MapPin, Bed, Bath, Maximize, Clock } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { PROPERTY_STATUS } from "@/lib/constants";
 
 interface PropertyCardProps {
   id: string;
@@ -20,6 +20,8 @@ interface PropertyCardProps {
   sqft: number;
   image: string;
   isFavorite?: boolean;
+  status?: string;
+  availabilityNote?: string;
 }
 
 export function PropertyCard({
@@ -32,6 +34,8 @@ export function PropertyCard({
   sqft,
   image,
   isFavorite: initialFavorite = false,
+  status = "available",
+  availabilityNote
 }: PropertyCardProps) {
   const [mounted, setMounted] = useState(false);
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
@@ -41,6 +45,7 @@ export function PropertyCard({
   }, []);
 
   const displayPrice = mounted ? price.toLocaleString() : price.toString();
+  const statusInfo = PROPERTY_STATUS.find(s => s.value === status) || PROPERTY_STATUS[0];
 
   const toggleFavorite = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -59,9 +64,12 @@ export function PropertyCard({
             className="object-cover transition-transform duration-500 group-hover:scale-110"
             data-ai-hint="property house"
           />
-          <div className="absolute top-4 right-4">
-            <Badge className="bg-white/90 text-foreground hover:bg-white backdrop-blur-sm rounded-full px-3 py-1 border-none font-bold">
+          <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
+            <Badge className="bg-white/90 text-foreground hover:bg-white backdrop-blur-sm rounded-full px-3 py-1 border-none font-bold shadow-sm">
               {displayPrice} دج <span className="text-muted-foreground font-normal mr-1">/ شهر</span>
+            </Badge>
+            <Badge className={cn("text-white border-none rounded-full px-3 py-1 font-bold shadow-sm", statusInfo.color)}>
+              {status === "soon" && availabilityNote ? availabilityNote : statusInfo.label}
             </Badge>
           </div>
           <Button
@@ -69,7 +77,7 @@ export function PropertyCard({
             size="icon"
             onClick={toggleFavorite}
             className={cn(
-              "absolute top-4 left-4 rounded-full bg-white/90 hover:bg-white backdrop-blur-sm transition-colors z-10",
+              "absolute top-4 left-4 rounded-full bg-white/90 hover:bg-white backdrop-blur-sm transition-colors z-10 shadow-sm",
               isFavorite ? "text-primary" : "text-muted-foreground"
             )}
           >

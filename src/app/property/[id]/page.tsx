@@ -1,4 +1,3 @@
-
 "use client";
 
 import { use, useEffect, useState } from "react";
@@ -6,24 +5,53 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { Bed, Bath, Maximize, MapPin, Calendar, CheckCircle2, Phone, MessageSquare, Share2, Heart } from "lucide-react";
+import { useDoc, useFirestore } from "@/firebase";
+import { doc } from "firebase/firestore";
+import { Bed, Bath, Maximize, MapPin, CheckCircle2, Phone, MessageSquare, Share2, Heart, Loader2, AlertCircle, Clock } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { PROPERTY_TYPES, PROPERTY_STATUS } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 
 export default function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const db = useFirestore();
   const [mounted, setMounted] = useState(false);
   
-  // Simulation of fetching data
-  const property = PlaceHolderImages.find(p => p.id === id.split('-')[0]) || PlaceHolderImages[0];
-  const price = 145000;
+  const propertyRef = db ? doc(db, "properties", id) : null;
+  const { data: property, loading, error } = useDoc(propertyRef);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  if (!mounted || loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white" dir="rtl">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        <p className="mt-4 text-muted-foreground">جاري تحميل تفاصيل العقار...</p>
+      </div>
+    );
+  }
+
+  if (error || !property) {
+    return (
+      <div className="min-h-screen flex flex-col bg-white" dir="rtl">
+        <Navbar />
+        <main className="flex-1 flex flex-col items-center justify-center p-4">
+          <AlertCircle className="w-16 h-16 text-destructive mb-4" />
+          <h1 className="text-2xl font-bold">عذراً، تعذر العثور على العقار</h1>
+          <p className="text-muted-foreground mt-2">قد يكون الإعلان قد حُذف أو الرابط غير صحيح.</p>
+          <Button asChild className="mt-6 rounded-xl">
+            <Link href="/properties">العودة للبحث</Link>
+          </Button>
+        </main>
+      </div>
+    );
+  }
+
+  const typeLabel = PROPERTY_TYPES.find(t => t.value === property.type)?.label || property.type;
+  const statusInfo = PROPERTY_STATUS.find(s => s.value === property.status) || PROPERTY_STATUS[0];
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-right" dir="rtl">
@@ -34,8 +62,8 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 h-[300px] md:h-[500px]">
           <div className="md:col-span-2 relative rounded-3xl overflow-hidden group shadow-lg">
             <Image 
-              src={property.imageUrl} 
-              alt={property.description} 
+              src={property.imageUrl || "https://picsum.photos/seed/dari/800/600"} 
+              alt={property.title} 
               fill 
               className="object-cover transition-transform duration-700 group-hover:scale-105"
               priority
@@ -56,49 +84,51 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
           <div className="lg:col-span-2 space-y-8">
             <div className="space-y-4">
               <div className="flex flex-wrap gap-2">
-                <Badge className="bg-primary/10 text-primary border-none text-sm px-4 py-1">شقة</Badge>
-                <Badge variant="secondary" className="text-sm px-4 py-1">كراء سنوي</Badge>
-                <Badge variant="outline" className="text-sm px-4 py-1 border-green-200 text-green-600">متوفر الآن</Badge>
+                <Badge className="bg-primary/10 text-primary border-none text-sm px-4 py-1">{typeLabel}</Badge>
+                <Badge variant="secondary" className="text-sm px-4 py-1">كراء {property.rentalPeriod === "12" ? "سنوي" : property.rentalPeriod + " أشهر"}</Badge>
+                <Badge className={cn("text-white border-none text-sm px-4 py-1 font-bold", statusInfo.color)}>
+                  {property.status === "soon" && property.availabilityNote ? property.availabilityNote : statusInfo.label}
+                </Badge>
               </div>
-              <h1 className="text-4xl md:text-5xl font-headline font-bold">{property.description}</h1>
+              <h1 className="text-4xl md:text-5xl font-headline font-bold">{property.title}</h1>
               <div className="flex items-center gap-2 text-muted-foreground text-lg">
                 <MapPin className="w-5 h-5 text-primary" />
-                <span>سيدي يحيى، الجزائر العاصمة</span>
+                <span>{property.location}</span>
               </div>
             </div>
 
             <div className="grid grid-cols-3 gap-4 p-6 bg-secondary/30 rounded-3xl">
               <div className="text-center space-y-1">
                 <Bed className="w-6 h-6 mx-auto text-primary" />
-                <p className="font-bold">3 غرف</p>
+                <p className="font-bold">{property.beds} غرف</p>
                 <p className="text-xs text-muted-foreground">نوم</p>
               </div>
               <div className="text-center space-y-1 border-x border-muted">
                 <Bath className="w-6 h-6 mx-auto text-primary" />
-                <p className="font-bold">2 حمام</p>
+                <p className="font-bold">{property.baths} حمام</p>
                 <p className="text-xs text-muted-foreground">كاملة</p>
               </div>
               <div className="text-center space-y-1">
                 <Maximize className="w-6 h-6 mx-auto text-primary" />
-                <p className="font-bold">120 م²</p>
+                <p className="font-bold">{property.sqft} م²</p>
                 <p className="text-xs text-muted-foreground">مساحة</p>
               </div>
             </div>
 
             <div className="space-y-4">
               <h2 className="text-2xl font-headline font-bold">وصف العقار</h2>
-              <p className="text-muted-foreground leading-relaxed text-lg">
-                شقة فاخرة تقع في قلب سيدي يحيى، تتميز بإطلالة خلابة وتصميم عصري. تتكون الشقة من ثلاث غرف واسعة، صالون كبير، ومطبخ مجهز بالكامل. قريبة من كافة المرافق الحيوية والمحلات التجارية والمدارس. نظام أمان متكامل وموقف سيارات خاص.
+              <p className="text-muted-foreground leading-relaxed text-lg whitespace-pre-line">
+                {property.description}
               </p>
             </div>
 
             <div className="space-y-4">
               <h2 className="text-2xl font-headline font-bold">المرافق والخدمات</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {["مكيف هواء", "موقف سيارات", "مصعد", "حراسة 24/7", "انترنت ألياف", "شرفة واسعة"].map((amenity) => (
+                {(property.amenities || "مكيف هواء، موقف سيارات، مصعد").split('،').map((amenity: string) => (
                   <div key={amenity} className="flex items-center gap-2">
                     <CheckCircle2 className="w-5 h-5 text-green-500" />
-                    <span>{amenity}</span>
+                    <span>{amenity.trim()}</span>
                   </div>
                 ))}
               </div>
@@ -112,7 +142,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                 <div className="space-y-1">
                   <p className="text-muted-foreground">السعر الشهري</p>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-bold text-primary">{price.toLocaleString()}</span>
+                    <span className="text-4xl font-bold text-primary">{property.price?.toLocaleString()}</span>
                     <span className="text-muted-foreground font-bold">دج</span>
                   </div>
                 </div>
@@ -120,23 +150,29 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                 <div className="space-y-4 pt-4 border-t">
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">التسبيق المطلوب</span>
-                    <span className="font-bold">6 أشهر</span>
+                    <span className="font-bold">{property.advancePayment} أشهر</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">مدة الكراء</span>
-                    <span className="font-bold">سنة قابلة للتجديد</span>
+                    <span className="font-bold">{property.rentalPeriod === "12" ? "سنة" : property.rentalPeriod + " أشهر"} قابلة للتجديد</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">عقد ملكية</span>
-                    <span className="font-bold text-green-600">متوفر وموثق</span>
+                    <span className={cn("font-bold", property.hasOwnershipContract ? "text-green-600" : "text-orange-500")}>
+                      {property.hasOwnershipContract ? "متوفر وموثق" : "غير مصرح به"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">نوع المعلن</span>
+                    <span className="font-bold">{property.ownerType === "Owner" ? "صاحب سكن" : "وسيط عقاري"}</span>
                   </div>
                 </div>
 
                 <div className="space-y-3 pt-6">
-                  <Button className="w-full h-14 rounded-2xl text-lg font-bold flex gap-2">
+                  <Button className="w-full h-14 rounded-2xl text-lg font-bold flex gap-2" disabled={property.status === "reserved"}>
                     <Phone className="w-5 h-5" /> اتصل بالمعلن
                   </Button>
-                  <Button variant="secondary" className="w-full h-14 rounded-2xl text-lg font-bold flex gap-2">
+                  <Button variant="secondary" className="w-full h-14 rounded-2xl text-lg font-bold flex gap-2" disabled={property.status === "reserved"}>
                     <MessageSquare className="w-5 h-5" /> إرسال رسالة
                   </Button>
                 </div>
