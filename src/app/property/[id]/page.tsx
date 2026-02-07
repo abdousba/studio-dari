@@ -1,3 +1,4 @@
+
 "use client";
 
 import { use, useEffect, useState } from "react";
@@ -7,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useDoc, useFirestore } from "@/firebase";
 import { doc } from "firebase/firestore";
-import { Bed, Bath, Maximize, MapPin, CheckCircle2, Phone, MessageSquare, Share2, Heart, Loader2, AlertCircle, Clock, CalendarCheck, Handshake } from "lucide-react";
+import { Bed, Bath, Maximize, MapPin, Phone, Heart, Loader2, AlertCircle, Clock, CalendarCheck, Handshake, Info, AlertTriangle, ChevronRight, ChevronLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { PROPERTY_TYPES, PROPERTY_STATUS } from "@/lib/constants";
@@ -21,6 +22,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
   const [mounted, setMounted] = useState(false);
   const { toast } = useToast();
   const [notifying, setNotifying] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
   
   const [currentUserType, setCurrentUserType] = useState<string | null>(null);
 
@@ -38,10 +40,8 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
     
     setNotifying(true);
     try {
-      // محاكاة إرسال التنبيهات الحقيقية عبر Genkit
-      const renterName = "مستخدم داري"; // يمكن جلبه من Auth لاحقاً
+      const renterName = "مستخدم داري"; 
       
-      // إرسال تنبيه SMS
       await sendNotification({
         type: 'sms',
         recipient: property.ownerPhone || "0550000000",
@@ -49,7 +49,6 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
         renterName: renterName
       });
 
-      // إرسال تنبيه Email
       await sendNotification({
         type: 'email',
         recipient: property.ownerEmail || "contact@dari.dz",
@@ -76,7 +75,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white" dir="rtl">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        <p className="mt-4 text-muted-foreground">جاري تحميل تفاصيل العقار من Firestore...</p>
+        <p className="mt-4 text-muted-foreground">جاري تحميل تفاصيل العقار...</p>
       </div>
     );
   }
@@ -99,29 +98,49 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
 
   const typeLabel = PROPERTY_TYPES.find(t => t.value === property.type)?.label || property.type;
   const statusInfo = PROPERTY_STATUS.find(s => s.value === property.status) || PROPERTY_STATUS[0];
+  const images = property.images && property.images.length > 0 ? property.images : [property.imageUrl || "https://picsum.photos/seed/dari/800/600"];
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-right" dir="rtl">
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 h-[300px] md:h-[500px]">
-          <div className="md:col-span-2 relative rounded-3xl overflow-hidden group shadow-lg">
-            <Image 
-              src={property.imageUrl || "https://picsum.photos/seed/dari/800/600"} 
-              alt={property.title} 
-              fill 
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
-              priority
-            />
-          </div>
-          <div className="hidden md:grid grid-rows-2 gap-4">
-            <div className="relative rounded-3xl overflow-hidden shadow-md">
-              <Image src="https://picsum.photos/seed/inner1/800/600" fill className="object-cover" alt="interior" />
-            </div>
-            <div className="relative rounded-3xl overflow-hidden shadow-md">
-              <Image src="https://picsum.photos/seed/inner2/800/600" fill className="object-cover" alt="interior" />
-            </div>
+        {/* Gallery Section */}
+        <div className="relative h-[350px] md:h-[550px] rounded-[3rem] overflow-hidden shadow-2xl mb-8 group">
+          <Image 
+            src={images[activeImageIndex]} 
+            alt={property.title} 
+            fill 
+            className="object-cover transition-all duration-700"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+          
+          {images.length > 1 && (
+            <>
+              <button 
+                onClick={() => setActiveImageIndex((activeImageIndex - 1 + images.length) % images.length)}
+                className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-all opacity-0 group-hover:opacity-100"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <button 
+                onClick={() => setActiveImageIndex((activeImageIndex + 1) % images.length)}
+                className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-all opacity-0 group-hover:opacity-100"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </>
+          )}
+
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
+            {images.map((_, i) => (
+              <button 
+                key={i} 
+                onClick={() => setActiveImageIndex(i)}
+                className={cn("w-3 h-3 rounded-full transition-all", i === activeImageIndex ? "bg-white w-8" : "bg-white/50")}
+              />
+            ))}
           </div>
         </div>
 
@@ -142,7 +161,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Card className={cn("rounded-2xl border-none shadow-sm", property.isPriceNegotiable ? "bg-green-50" : "bg-slate-50")}>
                 <CardContent className="p-4 flex items-center gap-4">
                   <div className={cn("p-3 rounded-xl", property.isPriceNegotiable ? "bg-green-100 text-green-700" : "bg-slate-200 text-slate-500")}>
@@ -187,10 +206,26 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
 
             <div className="space-y-4">
               <h2 className="text-2xl font-headline font-bold">وصف العقار</h2>
-              <p className="text-muted-foreground leading-relaxed text-lg whitespace-pre-line">
+              <p className="text-muted-foreground leading-relaxed text-lg whitespace-pre-line bg-muted/20 p-6 rounded-3xl border">
                 {property.description}
               </p>
             </div>
+
+            {/* Defects Display */}
+            {property.defects && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-orange-600">
+                  <AlertTriangle className="w-6 h-6" />
+                  <h2 className="text-2xl font-headline font-bold">عيوب العقار (بكل أمانة)</h2>
+                </div>
+                <div className="bg-orange-50 border border-orange-100 p-6 rounded-3xl text-orange-900 leading-relaxed text-lg italic">
+                  "{property.defects}"
+                  <p className="text-xs mt-4 text-orange-700/60 font-bold flex items-center gap-1">
+                    <Info className="w-3 h-3" /> تم التصريح بهذا العيب من قبل المؤجر التزاماً بالشفافية.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-6">
@@ -204,7 +239,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                   </div>
                 </div>
 
-                <div className="space-y-3 pt-6">
+                <div className="space-y-3 pt-6 border-t">
                   {currentUserType === "Renter" && property.status === "available" && (
                     <Button 
                       onClick={handleBookingRequest}
@@ -219,13 +254,22 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                   <Button className="w-full h-14 rounded-2xl text-lg font-bold flex gap-2" disabled={property.status === "reserved"}>
                     <Phone className="w-5 h-5" /> اتصل بالمعلن
                   </Button>
+                  
+                  <div className="flex gap-2">
+                    <Button variant="outline" className="flex-1 rounded-2xl h-12">
+                      <Heart className="w-5 h-5 ml-2" /> حفظ
+                    </Button>
+                    <Button variant="outline" className="flex-1 rounded-2xl h-12">
+                      شارك
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
             <div className="p-6 rounded-3xl bg-primary/5 border border-primary/10 space-y-4">
               <h3 className="font-bold text-lg">نصيحة أمان</h3>
-              <p className="text-sm text-muted-foreground">التطبيق يقوم بتنبيه المؤجر فورياً. لا تقم بالدفع المسبق خارج مكتب التوثيق.</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">تطبيق داري يشجع على الشفافية. لا تقم بالدفع المسبق أبداً دون معاينة حقيقية للعقار وتوثيق العقد.</p>
             </div>
           </div>
         </div>

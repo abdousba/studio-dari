@@ -22,6 +22,8 @@
         "sqft": { "type": "number" },
         "floor": { "type": "string", "description": "الطابق" },
         "imageUrl": { "type": "string" },
+        "images": { "type": "array", "items": { "type": "string" }, "description": "مجموعة صور العقار" },
+        "defects": { "type": "string", "description": "عيوب العقار إن وجدت" },
         "userId": { "type": "string" },
         "isPriceNegotiable": { "type": "boolean", "description": "هل السعر قابل للتفاوض" },
         "isDurationNegotiable": { "type": "boolean", "description": "هل مدة الكراء قابلة للتفاوض" },

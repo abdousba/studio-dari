@@ -7,17 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { generatePropertyDescription } from "@/ai/flows/generate-property-description";
-import { Loader2, Phone, Mail, Sparkles } from "lucide-react";
+import { Loader2, Phone, Mail, Sparkles, ImagePlus, AlertTriangle, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useUser, useDoc } from "@/firebase";
 import { collection, addDoc, serverTimestamp, doc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { ALGERIAN_WILAYAS, PROPERTY_TYPES, PROPERTY_STATUS, FLOORS } from "@/lib/constants";
+import Image from "next/image";
 
 export default function AddListingPage() {
   const { user, loading: userLoading } = useUser();
@@ -34,6 +36,7 @@ export default function AddListingPage() {
 
   const [loadingAI, setLoadingAI] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   
   const [formData, setFormData] = useState({
     title: "",
@@ -46,6 +49,7 @@ export default function AddListingPage() {
     floor: "ground",
     amenities: "شرفة، واي فاي",
     description: "",
+    defects: "",
     hasOwnershipContract: false,
     rentalPeriod: "12", 
     advancePayment: "6",
@@ -72,13 +76,15 @@ export default function AddListingPage() {
     }
   }, [profile]);
 
-  if (userLoading || profileLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
-      </div>
-    );
-  }
+  const handleSimulateUpload = () => {
+    if (uploadedImages.length >= 4) {
+      toast({ title: "الحد الأقصى", description: "يمكنك تحميل 4 صور فقط.", variant: "destructive" });
+      return;
+    }
+    const newImage = `https://picsum.photos/seed/${Math.random()}/800/600`;
+    setUploadedImages([...uploadedImages, newImage]);
+    toast({ title: "تم الرفع", description: "تمت إضافة صورة بنجاح." });
+  };
 
   const handleAIEnhance = async () => {
     if (!formData.price || !formData.location) {
@@ -111,6 +117,11 @@ export default function AddListingPage() {
       return;
     }
 
+    if (uploadedImages.length === 0) {
+      toast({ title: "صور مفقودة", description: "يرجى تحميل صورة واحدة حقيقية على الأقل.", variant: "destructive" });
+      return;
+    }
+
     setIsPublishing(true);
     try {
       if (db && user) {
@@ -123,7 +134,8 @@ export default function AddListingPage() {
           ownerType: profile?.userType || "Owner",
           userId: user.uid,
           createdAt: serverTimestamp(),
-          imageUrl: "https://picsum.photos/seed/" + Math.random() + "/800/600",
+          imageUrl: uploadedImages[0],
+          images: uploadedImages,
         });
         
         toast({ title: "تم النشر بنجاح!", description: "عقارك الآن متاح للمستأجرين." });
@@ -136,6 +148,14 @@ export default function AddListingPage() {
     }
   };
 
+  if (userLoading || profileLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col text-right" dir="rtl">
       <Navbar />
@@ -146,8 +166,46 @@ export default function AddListingPage() {
         </div>
 
         <div className="space-y-8">
-          <Card className="rounded-3xl border-none shadow-xl shadow-primary/5">
-            <CardContent className="p-8 space-y-6">
+          <Card className="rounded-3xl border-none shadow-xl shadow-primary/5 overflow-hidden">
+            <CardContent className="p-8 space-y-8">
+              
+              {/* Image Upload Section */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-lg font-bold">صور العقار (بحد أقصى 4)</Label>
+                  <span className="text-sm text-muted-foreground">{uploadedImages.length}/4</span>
+                </div>
+                
+                <Alert variant="default" className="bg-blue-50 border-blue-200 text-blue-800 rounded-2xl">
+                  <Info className="w-4 h-4" />
+                  <AlertTitle className="font-bold">تنبيه هام</AlertTitle>
+                  <AlertDescription>يرجى تحميل صورة واحدة على الأقل حقيقية للعقار لزيادة الموثوقية.</AlertDescription>
+                </Alert>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {uploadedImages.map((img, i) => (
+                    <div key={i} className="relative aspect-square rounded-2xl overflow-hidden group border-2 border-primary/10">
+                      <Image src={img} alt={`property-${i}`} fill className="object-cover" />
+                      <button 
+                        onClick={() => setUploadedImages(uploadedImages.filter((_, idx) => idx !== i))}
+                        className="absolute top-2 right-2 bg-destructive text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Loader2 className="w-4 h-4 rotate-45" />
+                      </button>
+                    </div>
+                  ))}
+                  {uploadedImages.length < 4 && (
+                    <button 
+                      onClick={handleSimulateUpload}
+                      className="aspect-square rounded-2xl border-2 border-dashed border-primary/20 hover:border-primary/50 hover:bg-primary/5 transition-all flex flex-col items-center justify-center gap-2 text-muted-foreground"
+                    >
+                      <ImagePlus className="w-8 h-8" />
+                      <span className="text-xs font-bold">أضف صورة</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="title">عنوان الإعلان</Label>
@@ -268,6 +326,23 @@ export default function AddListingPage() {
                   </Button>
                 </div>
                 <Textarea id="description" placeholder="صف سحر وجمال عقارك..." className="min-h-[150px] rounded-2xl" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
+              </div>
+
+              {/* Defects Section with Islamic Reminder */}
+              <div className="space-y-4">
+                <Label htmlFor="defects">العيوب (اختياري)</Label>
+                <Alert variant="destructive" className="bg-orange-50 border-orange-200 text-orange-800 rounded-2xl">
+                  <AlertTriangle className="w-4 h-4" />
+                  <AlertTitle className="font-bold">نصيحة شرعية</AlertTitle>
+                  <AlertDescription>إظهار العيوب وعدم خداع المستأجر من أخلاق المسلم، بارك الله لك في رزقك.</AlertDescription>
+                </Alert>
+                <Textarea 
+                  id="defects" 
+                  placeholder="مثلاً: وجود رطوبة خفيفة في إحدى الغرف..." 
+                  className="min-h-[100px] rounded-2xl bg-orange-50/20 border-orange-100" 
+                  value={formData.defects} 
+                  onChange={e => setFormData({...formData, defects: e.target.value})} 
+                />
               </div>
 
               <Button size="lg" className="w-full rounded-2xl h-14 font-bold shadow-lg shadow-primary/30" onClick={handlePublish} disabled={isPublishing}>
