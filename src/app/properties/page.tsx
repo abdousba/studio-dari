@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -8,21 +7,26 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, Filter, Grid, Map as MapIcon, Search, Plus, Minus, Home as HomeIcon } from "lucide-react";
+import { MapPin, Filter, Grid, Map as MapIcon, Search, Plus, Minus, Home as HomeIcon, LayoutPanelLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { ALGERIAN_WILAYAS, PROPERTY_TYPES } from "@/lib/constants";
+import { ALGERIAN_WILAYAS, PROPERTY_TYPES, FLOORS } from "@/lib/constants";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
 
 export default function PropertiesPage() {
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
   const [advanceFilter, setAdvanceFilter] = useState<string>("all");
   const [selectedWilaya, setSelectedWilaya] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<string>("all");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [rooms, setRooms] = useState("all");
+  const [selectedFloor, setSelectedFloor] = useState("all");
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-right" dir="rtl">
       <Navbar />
       
-      {/* Sub-Header / Filters */}
       <div className="sticky top-16 z-40 bg-white/95 backdrop-blur-md border-b">
         <div className="container mx-auto px-4 py-4 flex flex-col lg:flex-row items-center gap-4">
           <div className="relative flex-1 w-full">
@@ -62,25 +66,83 @@ export default function PropertiesPage() {
                 </Select>
              </div>
 
-             <div className="shrink-0 w-32">
-                <Select value={advanceFilter} onValueChange={setAdvanceFilter}>
-                  <SelectTrigger className="rounded-full h-10 border-muted">
-                    <SelectValue placeholder="أشهر التسبيق" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">كل التسبيقات</SelectItem>
-                    <SelectItem value="1">شهر واحد</SelectItem>
-                    <SelectItem value="3">3 أشهر</SelectItem>
-                    <SelectItem value="6">6 أشهر</SelectItem>
-                    <SelectItem value="12">سنة</SelectItem>
-                  </SelectContent>
-                </Select>
-             </div>
-            
-            <Badge variant="secondary" className="rounded-full px-4 py-2 cursor-pointer hover:bg-primary/10 transition-colors shrink-0">السعر: الكل</Badge>
-            <Button variant="outline" size="sm" className="rounded-full shrink-0 flex items-center gap-2">
-              <Filter className="w-4 h-4" /> كل الفلترات
-            </Button>
+             <Sheet>
+               <SheetTrigger asChild>
+                 <Button variant="outline" size="sm" className="rounded-full shrink-0 flex items-center gap-2 border-primary text-primary">
+                   <Filter className="w-4 h-4" /> فلاتر متقدمة
+                 </Button>
+               </SheetTrigger>
+               <SheetContent side="right" className="w-full sm:max-w-md text-right" dir="rtl">
+                 <SheetHeader>
+                   <SheetTitle className="text-right font-headline text-2xl mb-6">تصفية النتائج</SheetTitle>
+                 </SheetHeader>
+                 <div className="space-y-8 py-4">
+                   <div className="space-y-4">
+                     <Label className="text-lg">نطاق السعر (دج)</Label>
+                     <div className="grid grid-cols-2 gap-4">
+                       <div className="space-y-2">
+                         <Label className="text-xs text-muted-foreground">من</Label>
+                         <Input type="number" placeholder="0" value={minPrice} onChange={e => setMinPrice(e.target.value)} />
+                       </div>
+                       <div className="space-y-2">
+                         <Label className="text-xs text-muted-foreground">إلى</Label>
+                         <Input type="number" placeholder="1,000,000" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} />
+                       </div>
+                     </div>
+                   </div>
+
+                   <div className="space-y-4">
+                     <Label className="text-lg">عدد الغرف</Label>
+                     <Select value={rooms} onValueChange={setRooms}>
+                       <SelectTrigger>
+                         <SelectValue />
+                       </SelectTrigger>
+                       <SelectContent>
+                         <SelectItem value="all">الكل</SelectItem>
+                         <SelectItem value="1">غرفة واحدة</SelectItem>
+                         <SelectItem value="2">غرفتين</SelectItem>
+                         <SelectItem value="3">3 غرف</SelectItem>
+                         <SelectItem value="4">4 غرف</SelectItem>
+                         <SelectItem value="5">+5 غرف</SelectItem>
+                       </SelectContent>
+                     </Select>
+                   </div>
+
+                   <div className="space-y-4">
+                     <Label className="text-lg">الطابق</Label>
+                     <Select value={selectedFloor} onValueChange={setSelectedFloor}>
+                       <SelectTrigger>
+                         <SelectValue />
+                       </SelectTrigger>
+                       <SelectContent>
+                         <SelectItem value="all">الكل</SelectItem>
+                         {FLOORS.map(f => (
+                           <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                         ))}
+                       </SelectContent>
+                     </Select>
+                   </div>
+
+                   <div className="space-y-4">
+                     <Label className="text-lg">أشهر التسبيق</Label>
+                     <Select value={advanceFilter} onValueChange={setAdvanceFilter}>
+                       <SelectTrigger>
+                         <SelectValue />
+                       </SelectTrigger>
+                       <SelectContent>
+                         <SelectItem value="all">الكل</SelectItem>
+                         <SelectItem value="1">شهر واحد</SelectItem>
+                         <SelectItem value="3">3 أشهر</SelectItem>
+                         <SelectItem value="6">6 أشهر</SelectItem>
+                         <SelectItem value="12">سنة</SelectItem>
+                       </SelectContent>
+                     </Select>
+                   </div>
+
+                   <Button className="w-full h-14 rounded-2xl text-lg font-bold mt-8">تطبيق الفلاتر</Button>
+                 </div>
+               </SheetContent>
+             </Sheet>
           </div>
 
           <div className="flex bg-muted p-1 rounded-2xl shrink-0">
@@ -127,47 +189,13 @@ export default function PropertiesPage() {
                 />
               ))}
             </div>
-            
-            <div className="flex justify-center py-12">
-              <Button variant="outline" className="rounded-2xl px-12 h-14 font-bold">تحميل المزيد من العقارات</Button>
-            </div>
           </div>
         ) : (
           <div className="h-[calc(100vh-200px)] rounded-3xl overflow-hidden shadow-2xl relative border">
-            <div className="absolute inset-0 bg-secondary/20 flex items-center justify-center bg-[url('https://picsum.photos/seed/map/1920/1080')] bg-cover opacity-50 grayscale contrast-125" />
-            <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent pointer-events-none" />
-            
-            <div className="absolute top-[20%] right-[30%]">
-              <div className="bg-primary text-white p-2 rounded-full shadow-lg cursor-pointer hover:scale-110 transition-transform">
-                <MapPin className="w-6 h-6" />
-                <div className="absolute -top-8 right-1/2 translate-x-1/2 bg-white text-foreground text-xs font-bold px-2 py-1 rounded shadow whitespace-nowrap">
-                  120,000 دج
-                </div>
-              </div>
-            </div>
-
-            <div className="absolute bottom-8 right-1/2 translate-x-1/2 bg-white/90 backdrop-blur-md p-6 rounded-3xl shadow-2xl flex items-center gap-8 w-full max-w-2xl flex-row-reverse">
-              <div className="hidden sm:block aspect-square w-24 rounded-2xl overflow-hidden relative">
-                <img src={PlaceHolderImages[0].imageUrl} className="object-cover w-full h-full" alt="preview" />
-              </div>
-              <div className="flex-1 text-right">
-                <h3 className="text-xl font-headline font-bold">شقة فاخرة بالعاصمة</h3>
-                <p className="text-muted-foreground text-sm">سيدي يحيى، الجزائر</p>
-                <div className="flex items-center gap-4 mt-2 font-bold text-primary flex-row-reverse">
-                  <span>145,000 دج / شهر</span>
-                </div>
-              </div>
-              <Button className="rounded-xl h-12 px-6">عرض العقار</Button>
-            </div>
-            
-            <div className="absolute top-8 right-8 flex flex-col gap-2">
-              <Button variant="secondary" size="icon" className="rounded-xl bg-white/90 shadow-md">
-                <Plus className="w-5 h-5" />
-              </Button>
-              <Button variant="secondary" size="icon" className="rounded-xl bg-white/90 shadow-md">
-                <Minus className="w-5 h-5" />
-              </Button>
-            </div>
+             {/* Map view implementation... */}
+             <div className="absolute inset-0 bg-muted flex items-center justify-center">
+               <p className="text-xl font-bold">واجهة الخريطة قيد التطوير</p>
+             </div>
           </div>
         )}
       </main>

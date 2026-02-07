@@ -10,12 +10,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { generatePropertyDescription } from "@/ai/flows/generate-property-description";
-import { Loader2, Upload, Sparkles } from "lucide-react";
+import { Loader2, Upload, Sparkles, LayoutPanelTop } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import { ALGERIAN_WILAYAS, PROPERTY_TYPES, PROPERTY_STATUS } from "@/lib/constants";
+import { ALGERIAN_WILAYAS, PROPERTY_TYPES, PROPERTY_STATUS, FLOORS } from "@/lib/constants";
 
 export default function AddListingPage() {
   const [loadingAI, setLoadingAI] = useState(false);
@@ -28,6 +28,7 @@ export default function AddListingPage() {
     beds: "1",
     baths: "1",
     sqft: "80",
+    floor: "ground",
     amenities: "شرفة، واي فاي",
     description: "",
     ownerType: "Owner", 
@@ -64,7 +65,6 @@ export default function AddListingPage() {
       });
       setFormData({ ...formData, description: res.description });
     } catch (error) {
-      console.error(error);
       toast({ title: "خطأ في الذكاء الاصطناعي", description: "تعذر توليد الوصف.", variant: "destructive" });
     } finally {
       setLoadingAI(false);
@@ -101,7 +101,6 @@ export default function AddListingPage() {
         router.push("/properties");
       }
     } catch (e) {
-      console.error(e);
       toast({
         title: "فشل النشر",
         description: "حدث خطأ أثناء حفظ البيانات.",
@@ -172,6 +171,30 @@ export default function AddListingPage() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <Label>الطابق</Label>
+                  <Select value={formData.floor} onValueChange={(v) => setFormData({...formData, floor: v})}>
+                    <SelectTrigger className="rounded-xl">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FLOORS.map(f => (
+                        <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>عدد الغرف</Label>
+                  <Input type="number" value={formData.beds} onChange={e => setFormData({...formData, beds: e.target.value})} />
+                </div>
+                <div className="space-y-2">
+                  <Label>المساحة (م²)</Label>
+                  <Input type="number" value={formData.sqft} onChange={e => setFormData({...formData, sqft: e.target.value})} />
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label>حالة العقار</Label>
@@ -186,32 +209,9 @@ export default function AddListingPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                {formData.status === "soon" && (
-                  <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
-                    <Label htmlFor="availabilityNote">ملاحظة التوفر (مثلاً: متاح بعد 15 يوم)</Label>
-                    <Input id="availabilityNote" placeholder="متاح قريباً في..." value={formData.availabilityNote} onChange={e => setFormData({...formData, availabilityNote: e.target.value})} />
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="price">السعر (شهري بالدينار)</Label>
                   <Input id="price" type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} />
-                </div>
-                <div className="space-y-2">
-                  <Label>مدة الكراء (بالأشهر):</Label>
-                  <Select value={formData.rentalPeriod} onValueChange={(v) => setFormData({...formData, rentalPeriod: v})}>
-                    <SelectTrigger className="rounded-xl">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">شهرياً</SelectItem>
-                      <SelectItem value="3">3 أشهر</SelectItem>
-                      <SelectItem value="6">6 أشهر</SelectItem>
-                      <SelectItem value="12">سنة كاملة</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
 

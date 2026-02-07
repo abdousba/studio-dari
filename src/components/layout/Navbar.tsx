@@ -1,11 +1,22 @@
-
 "use client";
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Home, Search, User, PlusCircle, Heart } from "lucide-react";
+import { Home, Search, User, PlusCircle, Heart, UserCircle2 } from "lucide-react";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { useState } from "react";
+import { USER_TYPES } from "@/lib/constants";
 
 export function Navbar() {
+  const [userType, setUserType] = useState<string | null>(null);
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -31,11 +42,28 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <User className="w-5 h-5" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <User className="w-5 h-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="text-right" dir="rtl">
+              <DropdownMenuLabel>حسابي</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="text-xs text-muted-foreground">اختر نوع حسابك</DropdownMenuLabel>
+              {USER_TYPES.map(type => (
+                <DropdownMenuItem key={type.value} onClick={() => setUserType(type.value)} className="cursor-pointer">
+                  {type.label} {userType === type.value && "✓"}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-destructive">تسجيل الخروج</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
           <Button className="hidden sm:inline-flex rounded-full px-6 shadow-lg shadow-primary/20">
-            تسجيل الدخول
+            {userType ? `أهلاً ${USER_TYPES.find(t => t.value === userType)?.label}` : "تسجيل الدخول"}
           </Button>
         </div>
       </div>

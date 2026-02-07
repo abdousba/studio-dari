@@ -20,3 +20,19 @@ export const PROPERTY_STATUS = [
   { value: "reserved", label: "محجوز", color: "bg-red-500" },
   { value: "soon", label: "قريباً", color: "bg-orange-500" }
 ];
+
+export const USER_TYPES = [
+  { value: "Agent", label: "وسيط عقاري" },
+  { value: "Owner", label: "صاحب سكن (مؤجر)" },
+  { value: "Renter", label: "مستأجر (ساكن)" }
+];
+
+export const FLOORS = [
+  { value: "ground", label: "الطابق الأرضي" },
+  { value: "1", label: "الطابق 1" },
+  { value: "2", label: "الطابق 2" },
+  { value: "3", label: "الطابق 3" },
+  { value: "4", label: "الطابق 4" },
+  { value: "5", label: "الطابق 5" },
+  { value: "upper", label: "طابق علوي (+5)" }
+];

@@ -10,15 +10,16 @@
         "price": { "type": "number", "description": "السعر الشهري بالدينار" },
         "location": { "type": "string", "description": "الموقع (الولاية)" },
         "type": { "type": "string", "enum": ["villa", "houch", "apartment", "store", "warehouse"], "description": "نوع العقار" },
-        "ownerType": { "type": "string", "enum": ["Agent", "Owner"], "description": "نوع المعلن (وسيط أو صاحب سكن)" },
-        "hasOwnershipContract": { "boolean": true, "description": "هل يتوفر عقد ملكية" },
-        "rentalPeriod": { "type": "string", "enum": ["1", "3", "6", "12"], "description": "مدة الكراء القابلة للتجديد (بالأشهر)" },
-        "advancePayment": { "type": "string", "enum": ["1", "3", "6", "12"], "description": "عدد أشهر التسبيق المطلوبة" },
+        "ownerType": { "type": "string", "enum": ["Agent", "Owner"], "description": "نوع المعلن" },
+        "hasOwnershipContract": { "type": "boolean", "description": "هل يتوفر عقد ملكية" },
+        "rentalPeriod": { "type": "string", "enum": ["1", "3", "6", "12"], "description": "مدة الكراء" },
+        "advancePayment": { "type": "string", "enum": ["1", "3", "6", "12"], "description": "عدد أشهر التسبيق" },
         "status": { "type": "string", "enum": ["available", "reserved", "soon"], "description": "حالة العقار" },
-        "availabilityNote": { "type": "string", "description": "ملاحظة حول التوفر (مثلاً: متاح بعد 15 يوم)" },
+        "availabilityNote": { "type": "string" },
         "beds": { "type": "number" },
         "baths": { "type": "number" },
         "sqft": { "type": "number" },
+        "floor": { "type": "string", "description": "الطابق" },
         "imageUrl": { "type": "string" },
         "userId": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
@@ -42,7 +43,7 @@
   "firestore": {
     "/properties/{propertyId}": {
       "schema": "Property",
-      "description": "مجموعة العقارات المعروضة"
+      "description": "مجموعة العقارات"
     },
     "/users/{userId}": {
       "schema": "UserProfile",
