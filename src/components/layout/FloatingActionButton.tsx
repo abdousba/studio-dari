@@ -1,33 +1,26 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { useUser, useFirestore, useDoc } from "@/firebase";
+import { doc } from "firebase/firestore";
 
 export function FloatingActionButton() {
-  const [userType, setUserType] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const { user } = useUser();
+  const db = useFirestore();
 
-  useEffect(() => {
-    setMounted(true);
-    const checkUserType = () => {
-      const type = localStorage.getItem("dari_user_type");
-      setUserType(type);
-    };
+  const userProfileRef = useMemo(() => {
+    if (!db || !user) return null;
+    return doc(db, "users", user.uid);
+  }, [db, user]);
 
-    checkUserType();
-    // استماع لتغييرات التخزين المحلي في حال تم تغيير الحساب في نافذة أخرى
-    window.addEventListener("storage", checkUserType);
-    return () => window.removeEventListener("storage", checkUserType);
-  }, []);
+  const { data: profile } = useDoc(userProfileRef);
 
-  if (!mounted) return null;
-
-  // يظهر الزر فقط للمؤجر أو الوسيط العقاري
-  const isPublisher = userType === "Agent" || userType === "Owner";
+  // يظهر الزر فقط للمؤجر أو الوسيط العقاري المسجل دخوله
+  const isPublisher = profile?.userType === "Agent" || profile?.userType === "Owner";
 
   if (!isPublisher) return null;
 

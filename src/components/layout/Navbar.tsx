@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Home, Search, User, PlusCircle, Heart, UserCircle2 } from "lucide-react";
+import { Home, Search, User, PlusCircle, Heart, LogOut, LogIn } from "lucide-react";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -12,28 +12,30 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { useState, useEffect } from "react";
-import { USER_TYPES } from "@/lib/constants";
+import { useAuth, useUser, useFirestore, useDoc } from "@/firebase";
+import { signOut } from "firebase/auth";
+import { doc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useMemo } from "react";
 
 export function Navbar() {
-  const [userType, setUserType] = useState<string | null>(null);
+  const { user, loading: userLoading } = useUser();
+  const auth = useAuth();
+  const db = useFirestore();
+  const router = useRouter();
 
-  useEffect(() => {
-    const storedType = localStorage.getItem("dari_user_type");
-    if (storedType) setUserType(storedType);
-  }, []);
+  const userProfileRef = useMemo(() => {
+    if (!db || !user) return null;
+    return doc(db, "users", user.uid);
+  }, [db, user]);
 
-  const handleSetUserType = (type: string) => {
-    setUserType(type);
-    localStorage.setItem("dari_user_type", type);
-    // Reload to update components that depend on this
-    window.location.reload();
-  };
+  const { data: profile } = useDoc(userProfileRef);
 
-  const handleLogout = () => {
-    setUserType(null);
-    localStorage.removeItem("dari_user_type");
-    window.location.reload();
+  const handleLogout = async () => {
+    if (!auth) return;
+    await signOut(auth);
+    router.push("/");
   };
 
   return (
@@ -55,39 +57,53 @@ export function Navbar() {
           <Link href="/favorites" className="hover:text-primary transition-colors flex items-center gap-1">
             <Heart className="w-4 h-4" /> المفضلة
           </Link>
-          <Link href="/add-listing" className="hover:text-primary transition-colors flex items-center gap-1">
-            <PlusCircle className="w-4 h-4" /> أضف عقاراً
-          </Link>
+          {(profile?.userType === "Agent" || profile?.userType === "Owner") && (
+            <Link href="/add-listing" className="hover:text-primary transition-colors flex items-center gap-1">
+              <PlusCircle className="w-4 h-4" /> أضف عقاراً
+            </Link>
+          )}
         </div>
 
         <div className="flex items-center gap-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <User className="w-5 h-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="text-right" dir="rtl">
-              <DropdownMenuLabel>حسابي</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel className="text-xs text-muted-foreground">اختر نوع حسابك</DropdownMenuLabel>
-              {USER_TYPES.map(type => (
-                <DropdownMenuItem 
-                  key={type.value} 
-                  onClick={() => handleSetUserType(type.value)} 
-                  className="cursor-pointer"
-                >
-                  {type.label} {userType === type.value && "✓"}
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full">
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage src={user.photoURL || ""} />
+                    <AvatarFallback>{user.displayName?.charAt(0) || "U"}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="text-right w-56" dir="rtl">
+                <DropdownMenuLabel>
+                  <div className="flex flex-col">
+                    <span className="font-bold">{user.displayName}</span>
+                    <span className="text-xs text-muted-foreground">{profile?.userType === "Agent" ? "وسيط عقاري" : profile?.userType === "Owner" ? "صاحب سكن" : "مستأجر"}</span>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild className="cursor-pointer">
+                  <Link href="/favorites">المفضلة</Link>
                 </DropdownMenuItem>
-              ))}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-destructive cursor-pointer">تسجيل الخروج</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          <Button className="hidden sm:inline-flex rounded-full px-6 shadow-lg shadow-primary/20">
-            {userType ? `أهلاً ${USER_TYPES.find(t => t.value === userType)?.label}` : "تسجيل الدخول"}
-          </Button>
+                {(profile?.userType === "Agent" || profile?.userType === "Owner") && (
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link href="/add-listing">أضف عقاراً جديداً</Link>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive cursor-pointer">
+                  <LogOut className="w-4 h-4 ml-2" /> تسجيل الخروج
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button asChild className="rounded-full px-6 shadow-lg shadow-primary/20">
+              <Link href="/login">
+                <LogIn className="w-4 h-4 ml-2" /> تسجيل الدخول
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
     </nav>
