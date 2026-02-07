@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useDoc, useFirestore } from "@/firebase";
 import { doc } from "firebase/firestore";
-import { Bed, Bath, Maximize, MapPin, CheckCircle2, Phone, MessageSquare, Share2, Heart, Loader2, AlertCircle, Clock } from "lucide-react";
+import { Bed, Bath, Maximize, MapPin, CheckCircle2, Phone, MessageSquare, Share2, Heart, Loader2, AlertCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { PROPERTY_TYPES, PROPERTY_STATUS } from "@/lib/constants";
@@ -83,12 +83,12 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
           {/* Main Info */}
           <div className="lg:col-span-2 space-y-8">
             <div className="space-y-4">
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3 items-center">
                 <Badge className="bg-primary/10 text-primary border-none text-sm px-4 py-1">{typeLabel}</Badge>
                 <Badge variant="secondary" className="text-sm px-4 py-1">كراء {property.rentalPeriod === "12" ? "سنوي" : property.rentalPeriod + " أشهر"}</Badge>
-                <Badge className={cn("text-white border-none text-sm px-4 py-1 font-bold", statusInfo.color)}>
+                <div className={cn("text-white rounded-full px-5 py-1.5 text-sm font-bold shadow-md", statusInfo.color)}>
                   {property.status === "soon" && property.availabilityNote ? property.availabilityNote : statusInfo.label}
-                </Badge>
+                </div>
               </div>
               <h1 className="text-4xl md:text-5xl font-headline font-bold">{property.title}</h1>
               <div className="flex items-center gap-2 text-muted-foreground text-lg">

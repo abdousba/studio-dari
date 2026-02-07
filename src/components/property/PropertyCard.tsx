@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Heart, MapPin, Bed, Bath, Maximize, Clock } from "lucide-react";
+import { Heart, MapPin, Bed, Bath, Maximize } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -65,12 +65,12 @@ export function PropertyCard({
             data-ai-hint="property house"
           />
           <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
-            <Badge className="bg-white/90 text-foreground hover:bg-white backdrop-blur-sm rounded-full px-3 py-1 border-none font-bold shadow-sm">
+            <Badge className="bg-white/95 text-foreground hover:bg-white backdrop-blur-sm rounded-full px-3 py-1 border-none font-bold shadow-sm">
               {displayPrice} دج <span className="text-muted-foreground font-normal mr-1">/ شهر</span>
             </Badge>
-            <Badge className={cn("text-white border-none rounded-full px-3 py-1 font-bold shadow-sm", statusInfo.color)}>
+            <div className={cn("text-white rounded-full px-3 py-1 text-xs font-bold shadow-lg transition-transform hover:scale-105", statusInfo.color)}>
               {status === "soon" && availabilityNote ? availabilityNote : statusInfo.label}
-            </Badge>
+            </div>
           </div>
           <Button
             variant="ghost"

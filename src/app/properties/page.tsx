@@ -7,8 +7,7 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, Filter, Grid, Map as MapIcon, Search, Home as HomeIcon, LayoutPanelLeft, ChevronLeft } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { MapPin, Filter, Grid, Map as MapIcon, Search, Home as HomeIcon } from "lucide-react";
 import { ALGERIAN_WILAYAS, PROPERTY_TYPES, FLOORS } from "@/lib/constants";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
@@ -42,7 +41,7 @@ export default function PropertiesPage() {
               />
             </div>
 
-            {/* View Mode Toggle (Hidden on very small screens) */}
+            {/* View Mode Toggle */}
             <div className="hidden sm:flex bg-muted/50 p-1.5 rounded-2xl shrink-0">
               <Button 
                 variant={viewMode === "grid" ? "default" : "ghost"} 
@@ -104,23 +103,6 @@ export default function PropertiesPage() {
                   </Select>
                 </div>
 
-                {/* Rooms Filter (Quick) */}
-                <div className="shrink-0">
-                  <Select value={rooms} onValueChange={setRooms}>
-                    <SelectTrigger className="rounded-full h-10 border-muted bg-white hover:bg-muted/30 transition-colors px-4">
-                      <SelectValue placeholder="الغرف" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">كل الغرف</SelectItem>
-                      <SelectItem value="1">1</SelectItem>
-                      <SelectItem value="2">2</SelectItem>
-                      <SelectItem value="3">3</SelectItem>
-                      <SelectItem value="4">4</SelectItem>
-                      <SelectItem value="5">+5</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 {/* Advanced Filter Button */}
                 <Sheet>
                   <SheetTrigger asChild>
@@ -162,22 +144,6 @@ export default function PropertiesPage() {
                         </Select>
                       </div>
 
-                      <div className="space-y-4">
-                        <Label className="text-lg font-bold">أشهر التسبيق</Label>
-                        <Select value={advanceFilter} onValueChange={setAdvanceFilter}>
-                          <SelectTrigger className="rounded-xl h-12">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">الكل</SelectItem>
-                            <SelectItem value="1">شهر واحد</SelectItem>
-                            <SelectItem value="3">3 أشهر</SelectItem>
-                            <SelectItem value="6">6 أشهر</SelectItem>
-                            <SelectItem value="12">سنة</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
                       <div className="pt-4">
                         <Button className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20">تطبيق الفلاتر</Button>
                         <Button variant="ghost" className="w-full mt-2 text-muted-foreground">إعادة تعيين</Button>
@@ -200,9 +166,6 @@ export default function PropertiesPage() {
                 <h1 className="text-3xl font-headline font-bold">اكتشف <span className="text-primary">منزلك</span> القادم</h1>
                 <p className="text-muted-foreground">نعرض لك أفضل العقارات المتاحة حالياً</p>
               </div>
-              <div className="text-sm text-muted-foreground bg-muted/30 px-3 py-1 rounded-full">
-                تم العثور على <span className="font-bold text-foreground">{(PlaceHolderImages.length * 2)}</span> عقار
-              </div>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -217,21 +180,19 @@ export default function PropertiesPage() {
                   baths={(i % 3) + 1}
                   sqft={70 + (i * 25)}
                   image={img.imageUrl}
-                  status={i % 5 === 0 ? "reserved" : i % 7 === 0 ? "soon" : "available"}
-                  availabilityNote={i % 7 === 0 ? "متاح بعد شهر" : undefined}
+                  status={i % 3 === 0 ? "reserved" : i % 5 === 0 ? "soon" : "available"}
+                  availabilityNote={i % 5 === 0 ? "متاح بعد شهر" : undefined}
                 />
               ))}
             </div>
           </div>
         ) : (
           <div className="h-[calc(100vh-280px)] rounded-3xl overflow-hidden shadow-2xl relative border-2 border-muted/20">
-             {/* Map view implementation placeholder */}
              <div className="absolute inset-0 bg-muted/50 flex flex-col items-center justify-center space-y-4">
                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
                  <MapIcon className="w-10 h-10 text-primary" />
                </div>
                <p className="text-xl font-bold">واجهة الخريطة التفاعلية</p>
-               <p className="text-muted-foreground">ستتمكن قريباً من معاينة العقارات على الخريطة مباشرة</p>
                <Button variant="outline" onClick={() => setViewMode("grid")} className="rounded-xl">العودة لعرض الشبكة</Button>
              </div>
           </div>
