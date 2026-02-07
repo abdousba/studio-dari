@@ -1,3 +1,34 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "algiers-apartment",
+      "description": "Modern Algiers apartment with a view of the Mediterranean",
+      "imageUrl": "https://images.unsplash.com/photo-1662454419736-de132ff75638?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxtb2Rlcm4lMjBhcGFydG1lbnR8ZW58MHx8fHwxNzcwMzg5MDk1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "modern apartment"
+    },
+    {
+      "id": "oran-villa",
+      "description": "Traditional villa in Oran with modern amenities",
+      "imageUrl": "https://images.unsplash.com/photo-1673619977597-ffffcd464350?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx2aWxsYSUyMGFyY2hpdGVjdHVyZXxlbnwwfHx8fDE3NzA0MzgxNDh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "villa architecture"
+    },
+    {
+      "id": "constantine-loft",
+      "description": "Charming loft in the heart of Constantine",
+      "imageUrl": "https://images.unsplash.com/photo-1670912670848-5ca34fe2028f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjb3p5JTIwbG9mdHxlbnwwfHx8fDE3NzA0MzgxNDh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cozy loft"
+    },
+    {
+      "id": "annaba-studio",
+      "description": "Bright studio apartment near the beach in Annaba",
+      "imageUrl": "https://images.unsplash.com/photo-1608295332469-f44439283abb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxzdHVkaW8lMjBiZWFjaHxlbnwwfHx8fDE3NzA0MzgxNDl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "studio beach"
+    },
+    {
+      "id": "tlemcen-house",
+      "description": "Family house with garden in Tlemcen",
+      "imageUrl": "https://images.unsplash.com/photo-1598714805247-5dd440d87124?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxnYXJkZW4lMjBob3VzZXxlbnwwfHx8fDE3NzA0MzgxNDh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "garden house"
+    }
+  ]
 }
