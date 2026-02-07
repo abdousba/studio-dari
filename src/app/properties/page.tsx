@@ -89,8 +89,8 @@ export default function PropertiesPage() {
                   title={img.description.split('in')[0]}
                   location={img.description.split('in')[1] || "الجزائر العاصمة"}
                   price={45000 + (i * 15000)}
-                  beds={Math.floor(Math.random() * 4) + 1}
-                  baths={Math.floor(Math.random() * 3) + 1}
+                  beds={(i % 4) + 1}
+                  baths={(i % 3) + 1}
                   sqft={70 + (i * 25)}
                   image={img.imageUrl}
                 />

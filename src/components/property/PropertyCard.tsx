@@ -2,6 +2,7 @@
 "use client";
 
 import Image from "next/image";
+import { useState, useEffect } from "react";
 import { Heart, MapPin, Bed, Bath, Maximize } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,14 @@ export function PropertyCard({
   image,
   isFavorite = false,
 }: PropertyCardProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const displayPrice = mounted ? price.toLocaleString() : price.toString();
+
   return (
     <Card className="group overflow-hidden border-none shadow-sm hover:shadow-xl transition-all duration-300 rounded-3xl bg-white text-right" dir="rtl">
       <div className="relative aspect-[4/3] overflow-hidden">
@@ -43,7 +52,7 @@ export function PropertyCard({
         />
         <div className="absolute top-4 right-4">
           <Badge className="bg-white/90 text-foreground hover:bg-white backdrop-blur-sm rounded-full px-3 py-1 border-none font-bold">
-            {price.toLocaleString()} دج <span className="text-muted-foreground font-normal mr-1">/ شهر</span>
+            {displayPrice} دج <span className="text-muted-foreground font-normal mr-1">/ شهر</span>
           </Badge>
         </div>
         <Button
