@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -9,8 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { generatePropertyDescription } from "@/ai/flows/generate-property-description";
-import { Loader2, Upload, Sparkles, LayoutPanelTop } from "lucide-react";
+import { Loader2, Upload, Sparkles, LayoutPanelTop, Phone, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
@@ -36,7 +38,11 @@ export default function AddListingPage() {
     rentalPeriod: "12", 
     advancePayment: "6",
     status: "available",
-    availabilityNote: ""
+    availabilityNote: "",
+    isPriceNegotiable: false,
+    isDurationNegotiable: false,
+    ownerPhone: "0550000000",
+    ownerEmail: "owner@dari.dz"
   });
   const { toast } = useToast();
   const db = useFirestore();
@@ -212,6 +218,47 @@ export default function AddListingPage() {
                 <div className="space-y-2">
                   <Label htmlFor="price">السعر (شهري بالدينار)</Label>
                   <Input id="price" type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} />
+                </div>
+              </div>
+
+              {/* Negotiation Options */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-muted/30 rounded-2xl border border-dashed border-primary/20">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">السعر قابل للتفاوض</Label>
+                    <p className="text-xs text-muted-foreground">هل تسمح للمستأجر بمناقشة السعر؟</p>
+                  </div>
+                  <Switch 
+                    checked={formData.isPriceNegotiable} 
+                    onCheckedChange={(v) => setFormData({...formData, isPriceNegotiable: v})} 
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">المدة قابلة للتفاوض</Label>
+                    <p className="text-xs text-muted-foreground">هل تسمح بتغيير مدة الكراء؟</p>
+                  </div>
+                  <Switch 
+                    checked={formData.isDurationNegotiable} 
+                    onCheckedChange={(v) => setFormData({...formData, isDurationNegotiable: v})} 
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label>رقم الهاتف</Label>
+                  <div className="relative">
+                    <Phone className="absolute right-3 top-3 w-4 h-4 text-muted-foreground" />
+                    <Input className="pr-10" value={formData.ownerPhone} onChange={e => setFormData({...formData, ownerPhone: e.target.value})} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>البريد الإلكتروني</Label>
+                  <div className="relative">
+                    <Mail className="absolute right-3 top-3 w-4 h-4 text-muted-foreground" />
+                    <Input className="pr-10" value={formData.ownerEmail} onChange={e => setFormData({...formData, ownerEmail: e.target.value})} />
+                  </div>
                 </div>
               </div>
 

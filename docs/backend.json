@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Property": {
@@ -22,6 +23,10 @@
         "floor": { "type": "string", "description": "الطابق" },
         "imageUrl": { "type": "string" },
         "userId": { "type": "string" },
+        "isPriceNegotiable": { "type": "boolean", "description": "هل السعر قابل للتفاوض" },
+        "isDurationNegotiable": { "type": "boolean", "description": "هل مدة الكراء قابلة للتفاوض" },
+        "ownerPhone": { "type": "string" },
+        "ownerEmail": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["title", "price", "location", "ownerType", "rentalPeriod", "advancePayment", "status"]

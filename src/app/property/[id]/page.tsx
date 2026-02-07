@@ -1,3 +1,4 @@
+
 "use client";
 
 import { use, useEffect, useState } from "react";
@@ -7,23 +8,38 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useDoc, useFirestore } from "@/firebase";
 import { doc } from "firebase/firestore";
-import { Bed, Bath, Maximize, MapPin, CheckCircle2, Phone, MessageSquare, Share2, Heart, Loader2, AlertCircle } from "lucide-react";
+import { Bed, Bath, Maximize, MapPin, CheckCircle2, Phone, MessageSquare, Share2, Heart, Loader2, AlertCircle, Clock, CalendarCheck, Handshake } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { PROPERTY_TYPES, PROPERTY_STATUS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 export default function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const db = useFirestore();
   const [mounted, setMounted] = useState(false);
+  const { toast } = useToast();
   
+  // Simulated user type (normally from context or auth)
+  const [currentUserType, setCurrentUserType] = useState<string | null>(null);
+
   const propertyRef = db ? doc(db, "properties", id) : null;
   const { data: property, loading, error } = useDoc(propertyRef);
 
   useEffect(() => {
     setMounted(true);
+    // Check localStorage for simulated user type from Navbar
+    const storedType = localStorage.getItem("dari_user_type");
+    if (storedType) setCurrentUserType(storedType);
   }, []);
+
+  const handleBookingRequest = () => {
+    toast({
+      title: "تم إرسال طلب الحجز!",
+      description: "لقد أرسلنا تنبيهاً للمؤجر عبر الرسائل النصية والبريد الإلكتروني.",
+    });
+  };
 
   if (!mounted || loading) {
     return (
@@ -67,6 +83,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
               fill 
               className="object-cover transition-transform duration-700 group-hover:scale-105"
               priority
+              data-ai-hint="luxury property"
             />
           </div>
           <div className="hidden md:grid grid-rows-2 gap-4">
@@ -95,6 +112,32 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                 <MapPin className="w-5 h-5 text-primary" />
                 <span>{property.location}</span>
               </div>
+            </div>
+
+            {/* Negotiation Status Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              <Card className={cn("rounded-2xl border-none shadow-sm", property.isPriceNegotiable ? "bg-green-50" : "bg-slate-50")}>
+                <CardContent className="p-4 flex items-center gap-4">
+                  <div className={cn("p-3 rounded-xl", property.isPriceNegotiable ? "bg-green-100 text-green-700" : "bg-slate-200 text-slate-500")}>
+                    <Handshake className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">قابلية تفاوض السعر</p>
+                    <p className="font-bold text-sm">{property.isPriceNegotiable ? "السعر قابل للتفاوض" : "السعر ثابت وغير قابل للتفاوض"}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className={cn("rounded-2xl border-none shadow-sm", property.isDurationNegotiable ? "bg-blue-50" : "bg-slate-50")}>
+                <CardContent className="p-4 flex items-center gap-4">
+                  <div className={cn("p-3 rounded-xl", property.isDurationNegotiable ? "bg-blue-100 text-blue-700" : "bg-slate-200 text-slate-500")}>
+                    <Clock className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">قابلية تفاوض المدة</p>
+                    <p className="font-bold text-sm">{property.isDurationNegotiable ? "المدة قابلة للتفاوض" : "مدة الكراء ثابتة"}</p>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             <div className="grid grid-cols-3 gap-4 p-6 bg-secondary/30 rounded-3xl">
@@ -169,6 +212,16 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                 </div>
 
                 <div className="space-y-3 pt-6">
+                  {/* Reservation Button for Renters Only */}
+                  {currentUserType === "Renter" && property.status === "available" && (
+                    <Button 
+                      onClick={handleBookingRequest}
+                      className="w-full h-14 rounded-2xl text-lg font-bold bg-green-600 hover:bg-green-700 shadow-lg shadow-green-200 flex gap-2"
+                    >
+                      <CalendarCheck className="w-6 h-6" /> احجز الآن
+                    </Button>
+                  )}
+
                   <Button className="w-full h-14 rounded-2xl text-lg font-bold flex gap-2" disabled={property.status === "reserved"}>
                     <Phone className="w-5 h-5" /> اتصل بالمعلن
                   </Button>

@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -11,11 +12,29 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { USER_TYPES } from "@/lib/constants";
 
 export function Navbar() {
   const [userType, setUserType] = useState<string | null>(null);
+
+  useEffect(() => {
+    const storedType = localStorage.getItem("dari_user_type");
+    if (storedType) setUserType(storedType);
+  }, []);
+
+  const handleSetUserType = (type: string) => {
+    setUserType(type);
+    localStorage.setItem("dari_user_type", type);
+    // Reload to update components that depend on this
+    window.location.reload();
+  };
+
+  const handleLogout = () => {
+    setUserType(null);
+    localStorage.removeItem("dari_user_type");
+    window.location.reload();
+  };
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
@@ -53,12 +72,16 @@ export function Navbar() {
               <DropdownMenuSeparator />
               <DropdownMenuLabel className="text-xs text-muted-foreground">اختر نوع حسابك</DropdownMenuLabel>
               {USER_TYPES.map(type => (
-                <DropdownMenuItem key={type.value} onClick={() => setUserType(type.value)} className="cursor-pointer">
+                <DropdownMenuItem 
+                  key={type.value} 
+                  onClick={() => handleSetUserType(type.value)} 
+                  className="cursor-pointer"
+                >
                   {type.label} {userType === type.value && "✓"}
                 </DropdownMenuItem>
               ))}
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">تسجيل الخروج</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive cursor-pointer">تسجيل الخروج</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           
