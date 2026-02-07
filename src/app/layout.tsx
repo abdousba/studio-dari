@@ -1,7 +1,9 @@
+
 import type {Metadata} from 'next';
 import './globals.css';
 import { FirebaseClientProvider } from '@/firebase';
 import { Toaster } from '@/components/ui/toaster';
+import { FloatingActionButton } from '@/components/layout/FloatingActionButton';
 
 export const metadata: Metadata = {
   title: 'داري - منصتك المثالية للعثور على سكن في الجزائر',
@@ -23,6 +25,7 @@ export default function RootLayout({
       <body className="font-body antialiased min-h-screen bg-background text-foreground">
         <FirebaseClientProvider>
           {children}
+          <FloatingActionButton />
           <Toaster />
         </FirebaseClientProvider>
       </body>
