@@ -1,14 +1,16 @@
+
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Heart, MapPin, Bed, Bath, Maximize } from "lucide-react";
+import { Heart, MapPin, Bed, Bath, Maximize, CheckCircle } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PROPERTY_STATUS } from "@/lib/constants";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface PropertyCardProps {
   id: string;
@@ -22,6 +24,7 @@ interface PropertyCardProps {
   isFavorite?: boolean;
   status?: string;
   availabilityNote?: string;
+  hasOwnershipContract?: boolean;
 }
 
 export function PropertyCard({
@@ -35,7 +38,8 @@ export function PropertyCard({
   image,
   isFavorite: initialFavorite = false,
   status = "available",
-  availabilityNote
+  availabilityNote,
+  hasOwnershipContract
 }: PropertyCardProps) {
   const [mounted, setMounted] = useState(false);
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
@@ -72,6 +76,24 @@ export function PropertyCard({
               {status === "soon" && availabilityNote ? availabilityNote : statusInfo.label}
             </div>
           </div>
+          
+          {hasOwnershipContract && (
+            <div className="absolute top-4 left-16 z-10">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="bg-blue-600 text-white p-1.5 rounded-full shadow-lg">
+                      <CheckCircle className="w-4 h-4" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">عقار موثق (يتوفر عقد ملكية)</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          )}
+
           <Button
             variant="ghost"
             size="icon"

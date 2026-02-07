@@ -1,20 +1,21 @@
 
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useMemo } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDoc, useFirestore } from "@/firebase";
 import { doc } from "firebase/firestore";
-import { Bed, Bath, Maximize, MapPin, Phone, Heart, Loader2, AlertCircle, Clock, CalendarCheck, Handshake, Info, AlertTriangle, ChevronRight, ChevronLeft } from "lucide-react";
+import { Bed, Bath, Maximize, MapPin, Phone, Heart, Loader2, AlertCircle, Clock, CalendarCheck, Handshake, Info, AlertTriangle, ChevronRight, ChevronLeft, ShieldCheck, Calculator, Landmark } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { PROPERTY_TYPES, PROPERTY_STATUS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { sendNotification } from "@/ai/flows/send-notification";
+import { Separator } from "@/components/ui/separator";
 
 export default function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -26,7 +27,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
   
   const [currentUserType, setCurrentUserType] = useState<string | null>(null);
 
-  const propertyRef = db ? doc(db, "properties", id) : null;
+  const propertyRef = useMemo(() => (db ? doc(db, "properties", id) : null), [db, id]);
   const { data: property, loading, error } = useDoc(propertyRef);
 
   useEffect(() => {
@@ -100,6 +101,12 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
   const statusInfo = PROPERTY_STATUS.find(s => s.value === property.status) || PROPERTY_STATUS[0];
   const images = property.images && property.images.length > 0 ? property.images : [property.imageUrl || "https://picsum.photos/seed/dari/800/600"];
 
+  // حاسبة التكاليف
+  const price = Number(property.price);
+  const advanceMonths = Number(property.advancePayment) || 6;
+  const totalAdvance = price * advanceMonths;
+  const agentFee = property.ownerType === "Agent" ? price : 0; // عمولة شهر واحد إذا كان المعلن وسيط
+
   return (
     <div className="min-h-screen flex flex-col bg-white text-right" dir="rtl">
       <Navbar />
@@ -149,7 +156,11 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
             <div className="space-y-4">
               <div className="flex flex-wrap gap-3 items-center">
                 <Badge className="bg-primary/10 text-primary border-none text-sm px-4 py-1">{typeLabel}</Badge>
-                <Badge variant="secondary" className="text-sm px-4 py-1">كراء {property.rentalPeriod === "12" ? "سنوي" : property.rentalPeriod + " أشهر"}</Badge>
+                {property.hasOwnershipContract && (
+                  <Badge className="bg-blue-50 text-blue-600 border-blue-200 flex items-center gap-1 px-4 py-1 font-bold">
+                    <ShieldCheck className="w-4 h-4" /> عقار موثق
+                  </Badge>
+                )}
                 <div className={cn("text-white rounded-full px-5 py-1.5 text-sm font-bold shadow-md", statusInfo.color)}>
                   {property.status === "soon" && property.availabilityNote ? property.availabilityNote : statusInfo.label}
                 </div>
@@ -211,6 +222,35 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
               </p>
             </div>
 
+            {/* حاسبة التكاليف الذكية */}
+            <Card className="rounded-3xl border-2 border-primary/10 bg-gradient-to-br from-primary/5 to-transparent overflow-hidden">
+              <CardHeader className="flex flex-row items-center gap-2 border-b bg-white/50">
+                <Calculator className="w-5 h-5 text-primary" />
+                <CardTitle className="text-xl font-bold">حاسبة التكاليف التقريبية</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 space-y-4">
+                <div className="flex justify-between items-center text-lg">
+                  <span className="text-muted-foreground">مبلغ التسبيق ({advanceMonths} أشهر):</span>
+                  <span className="font-bold">{totalAdvance.toLocaleString()} دج</span>
+                </div>
+                {agentFee > 0 && (
+                  <div className="flex justify-between items-center text-lg">
+                    <span className="text-muted-foreground">عمولة الوسيط العقاري:</span>
+                    <span className="font-bold">{agentFee.toLocaleString()} دج</span>
+                  </div>
+                )}
+                <Separator />
+                <div className="flex justify-between items-center text-2xl">
+                  <span className="font-headline font-bold">المبلغ الإجمالي عند التوثيق:</span>
+                  <span className="font-headline font-bold text-primary">{(totalAdvance + agentFee).toLocaleString()} دج</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-white/50 p-2 rounded-lg">
+                  <Info className="w-4 h-4" />
+                  <span>هذا المبلغ تقديري ويشمل التسبيق والعمولة، ولا يشمل رسوم الموثق.</span>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Defects Display */}
             {property.defects && (
               <div className="space-y-4">
@@ -240,6 +280,14 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                 </div>
 
                 <div className="space-y-3 pt-6 border-t">
+                  <div className="flex items-center gap-2 p-3 bg-secondary/50 rounded-2xl mb-4">
+                    <Landmark className="w-5 h-5 text-primary" />
+                    <div className="text-xs">
+                      <p className="font-bold">التسبيق المطلوب: {advanceMonths} أشهر</p>
+                      <p className="text-muted-foreground">نظام الدفع المتفق عليه</p>
+                    </div>
+                  </div>
+
                   {currentUserType === "Renter" && property.status === "available" && (
                     <Button 
                       onClick={handleBookingRequest}
